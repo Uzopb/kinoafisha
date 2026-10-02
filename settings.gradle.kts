@@ -33,4 +33,9 @@ plugins {
 
 include(":androidApp")
 include(":desktopApp")
-include(":shared")
+include(":core:domain")
+include(":core:network")
+include(":core:database")
+include(":core:data")
+include(":feature:afisha")
+include("core:platform")

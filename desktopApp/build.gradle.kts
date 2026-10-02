@@ -7,9 +7,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":shared"))
+    implementation(project(":feature:afisha"))
 
     implementation(compose.desktop.currentOs)
+    implementation(libs.koin.core)
     implementation(libs.kotlinx.coroutinesSwing)
 
     implementation(libs.compose.uiToolingPreview)
