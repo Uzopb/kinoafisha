@@ -4,10 +4,16 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.koin.compiler)
 }
 
 dependencies {
     implementation(project(":feature:afisha"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":core:data"))
+    implementation(project(":core:platform"))
 
     implementation(compose.desktop.currentOs)
     implementation(libs.koin.core)

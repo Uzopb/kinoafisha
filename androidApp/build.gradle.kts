@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.koin.compiler)
 }
 
 kotlin {
@@ -12,6 +13,11 @@ kotlin {
 }
 dependencies {
     implementation(project(":feature:afisha"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":core:data"))
+    implementation(project(":core:platform"))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.koin.android)
