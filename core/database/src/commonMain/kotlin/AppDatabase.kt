@@ -4,9 +4,6 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import org.example.kinoafisha.core.database.dao.MovieDao
 import org.example.kinoafisha.core.database.entity.MovieEntity
 
@@ -23,11 +20,3 @@ abstract class AppDatabase : RoomDatabase() {
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
-
-fun getRoomDatabase(
-    builder: RoomDatabase.Builder<AppDatabase>,
-): AppDatabase =
-    builder
-        .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
-        .build()
