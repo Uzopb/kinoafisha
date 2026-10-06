@@ -1,9 +1,10 @@
 package org.example.kinoafisha.di
 
-import org.example.kinoafisha.Platform
-import org.example.kinoafisha.getPlatform
-import org.koin.dsl.module
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
+import org.koin.core.annotation.Module
 
-val platformModule = module {
-    single<Platform> { getPlatform() }
-}
+@Module
+@Configuration
+@ComponentScan("org.example.kinoafisha")
+class PlatformModule

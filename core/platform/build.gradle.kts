@@ -19,10 +19,13 @@ kotlin {
         }
     }
 
+    // Платформенные мелочи (Platform, будущий логгер).
+    // находятся плагином Koin автоматически на classpath приложения.
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
+            implementation(libs.koin.annotations)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

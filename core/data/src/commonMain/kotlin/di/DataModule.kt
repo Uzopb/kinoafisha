@@ -1,8 +1,10 @@
 package org.example.kinoafisha.core.data.di
 
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
+import org.koin.core.annotation.Module
 
-import org.koin.dsl.module
-
-val dataModule = module {
-
-}
+@Module
+@Configuration
+@ComponentScan("org.example.kinoafisha.core.data")
+class DataModule

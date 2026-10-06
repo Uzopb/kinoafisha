@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -11,6 +12,12 @@ kotlin {
         jvmTarget = JvmTarget.JVM_11
     }
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
 dependencies {
     implementation(project(":feature:afisha"))
     implementation(project(":core:domain"))
@@ -21,6 +28,7 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.koin.android)
+    implementation(libs.koin.annotations)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
@@ -36,6 +44,12 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField(
+            "String",
+            "TMDB_API_KEY",
+            "\"${localProperties.getProperty("tmdb.api.key", "")}\"",
+        )
     }
     packaging {
         resources {
@@ -57,5 +71,6 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }

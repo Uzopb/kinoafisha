@@ -1,7 +1,8 @@
 package org.example.kinoafisha
 
-class JVMPlatform: Platform {
+import org.koin.core.annotation.Singleton
+
+@Singleton
+class JVMPlatform : Platform {
     override val name: String = "Java ${System.getProperty("java.version")}"
 }
-
-actual fun getPlatform(): Platform = JVMPlatform()

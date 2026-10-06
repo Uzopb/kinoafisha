@@ -34,11 +34,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // UI зависит только от domain; реализацию репозитория
-            // получает в рантайме через Koin
             implementation(project(":core:domain"))
-            implementation(project(":core:platform"))
 
+            implementation(libs.koin.annotations)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

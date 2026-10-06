@@ -28,6 +28,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.koin.core)
+            implementation(libs.koin.annotations)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)

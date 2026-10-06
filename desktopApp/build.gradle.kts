@@ -1,4 +1,10 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -17,6 +23,7 @@ dependencies {
 
     implementation(compose.desktop.currentOs)
     implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
     implementation(libs.kotlinx.coroutinesSwing)
 
     implementation(libs.compose.uiToolingPreview)
@@ -32,4 +39,8 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    systemProperty("tmdb.api.key", localProperties.getProperty("tmdb.api.key", ""))
 }
