@@ -7,19 +7,21 @@ import org.example.kinoafisha.core.database.di.databaseModule
 import org.example.kinoafisha.core.domain.di.domainModule
 import org.example.kinoafisha.core.network.di.networkModule
 import org.example.kinoafisha.di.platformModule
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
-class KinoafishaApp: Application() {
+class KinoafishaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
+            androidContext(this@KinoafishaApp)
             modules(
                 domainModule,
                 networkModule,
                 databaseModule,
                 dataModule,
                 afishaModule,
-                platformModule
+                platformModule,
             )
         }
     }
