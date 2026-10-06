@@ -3,29 +3,27 @@ package org.example.kinoafisha
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import org.example.kinoafisha.afisha.App
-import org.example.kinoafisha.afisha.di.afishaModule
-import org.example.kinoafisha.core.data.di.dataModule
-import org.example.kinoafisha.core.database.di.databaseModule
-import org.example.kinoafisha.core.domain.di.domainModule
-import org.example.kinoafisha.core.network.di.networkModule
-import org.example.kinoafisha.di.platformModule
-import org.koin.core.context.GlobalContext.startKoin
+import org.koin.core.annotation.KoinApplication
+import org.koin.plugin.module.dsl.startKoin
+
+@KoinApplication
+class KinoafishaDesktopApp
 
 fun main() {
-
-    startKoin {
-        modules(
-            domainModule,
-            networkModule,
-            databaseModule,
-            dataModule,
-            afishaModule,
-            platformModule
+    startKoin<KinoafishaDesktopApp> {
+        printLogger()
+        properties(
+            mapOf(
+                "tmdb_api_key" to (
+                    System.getProperty("tmdb.api.key")
+                        ?: System.getenv("TMDB_API_KEY")
+                        ?: ""
+                    ),
+            ),
         )
     }
 
     application {
-
         Window(
             onCloseRequest = ::exitApplication,
             title = "Kinoafisha",

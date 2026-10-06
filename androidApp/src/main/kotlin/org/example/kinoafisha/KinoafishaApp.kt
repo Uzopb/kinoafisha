@@ -1,28 +1,19 @@
 package org.example.kinoafisha
 
 import android.app.Application
-import org.example.kinoafisha.afisha.di.afishaModule
-import org.example.kinoafisha.core.data.di.dataModule
-import org.example.kinoafisha.core.database.di.databaseModule
-import org.example.kinoafisha.core.domain.di.domainModule
-import org.example.kinoafisha.core.network.di.networkModule
-import org.example.kinoafisha.di.platformModule
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.GlobalContext.startKoin
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.annotation.KoinApplication
+import org.koin.plugin.module.dsl.startKoin
 
+@KoinApplication
 class KinoafishaApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        startKoin {
+        startKoin<KinoafishaApp> {
             androidContext(this@KinoafishaApp)
-            modules(
-                domainModule,
-                networkModule,
-                databaseModule,
-                dataModule,
-                afishaModule,
-                platformModule,
-            )
+            androidLogger()
+            properties(mapOf("tmdb_api_key" to BuildConfig.TMDB_API_KEY))
         }
     }
 }
