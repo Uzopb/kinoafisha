@@ -17,12 +17,19 @@ fun MovieDto.toDomain(): Movie =
     Movie(
         id = id,
         title = title,
-        posterUrl = posterPath?.let { "$TMDB_IMAGE_BASE$it" },
+        overview = overview,
+        releaseDate = releaseDate,
+        // TMDB отдаёт release_date как "YYYY-MM-DD"
+        year = releaseDate?.take(4)?.toIntOrNull(),
+        genreIds = genreIds,
+        rating = voteAverage,
+        voteCount = voteCount,
+        posterPath = posterPath,
     )
 
 fun MovieEntity.toDomain(): Movie =
     Movie(
         id = id,
         title = title,
-        posterUrl = posterUrl,
+        posterPath = posterUrl,
     )
