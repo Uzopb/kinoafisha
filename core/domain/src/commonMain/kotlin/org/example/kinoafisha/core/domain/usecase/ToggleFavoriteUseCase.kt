@@ -5,8 +5,8 @@ import org.example.kinoafisha.core.domain.repository.MovieRepository
 import org.koin.core.annotation.Factory
 
 @Factory
-class GetNowPlayingUseCase(
+class ToggleFavoriteUseCase(
     private val repository: MovieRepository,
 ) {
-    suspend operator fun invoke(): List<Movie> = repository.getNowPlaying()
+    suspend operator fun invoke(movie: Movie) = repository.toggleFavorite(movie)
 }
