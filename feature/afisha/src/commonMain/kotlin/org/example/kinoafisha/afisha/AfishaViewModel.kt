@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.example.kinoafisha.core.domain.model.Movie
-import org.example.kinoafisha.core.domain.usecase.GetNowPlayingUseCase
+import org.example.kinoafisha.core.domain.usecase.GetFeedUseCase
 import org.koin.core.annotation.KoinViewModel
 
 data class AfishaState(
@@ -19,7 +19,7 @@ data class AfishaState(
 
 @KoinViewModel
 class AfishaViewModel(
-    private val getNowPlaying: GetNowPlayingUseCase,
+    private val getFeed: GetFeedUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AfishaState(isLoading = true))
@@ -33,8 +33,8 @@ class AfishaViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val movies = getNowPlaying()
-                _state.update { it.copy(isLoading = false, movies = movies) }
+                val page = getFeed()
+                _state.update { it.copy(isLoading = false, movies = page.items) }
             } catch (e: Exception) {
                 _state.update {
                     it.copy(isLoading = false, error = e.message ?: "Ошибка загрузки")

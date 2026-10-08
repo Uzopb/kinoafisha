@@ -67,8 +67,8 @@ private fun AfishaContentPreview() {
         AfishaContent(
             state = AfishaState(
                 movies = listOf(
-                    Movie(1, "Дюна: Часть вторая", null),
-                    Movie(2, "Оппенгеймер", null),
+                    Movie(id = 1, title = "Дюна: Часть вторая"),
+                    Movie(id = 2, title = "Оппенгеймер"),
                 ),
             ),
         )
