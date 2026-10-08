@@ -29,13 +29,23 @@ const state = {
   query: "",
   genre: null,          // id жанра из бокового меню
   detailsId: null,      // "movie:123" | "tv:456"
+  sort: "popularity",   // popularity | rating.desc|asc | year.desc|asc
+  favSort: "popularity",
+  page: 1,
+  totalPages: 1,
+  feedItems: [],
+  feedLoading: false,
+  layout: "list",       // list | grid
 };
 
 const genreMaps = { movie: new Map(), tv: new Map() };      // id -> name
 const cache = new Map();                                     // "movie:123" -> item
 
 const FAV_KEY = "kinoafisha:favorites:v2";
+const LAYOUT_KEY = "kinoafisha:layout";
 const favorites = new Map(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); // key -> snapshot
+const savedLayout = localStorage.getItem(LAYOUT_KEY);
+if (savedLayout === "list" || savedLayout === "grid") state.layout = savedLayout;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -86,6 +96,46 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/** То же сердце, что в bottom bar */
+function heartIcon(size = 18) {
+  return `<svg class="fav-btn__icon" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="M12 21s-8-4.7-10.5-9.5C-.3 7.9 2.3 4 6.2 4c2.3 0 3.9 1.3 5.8 3.4C13.9 5.3 15.5 4 17.8 4c3.9 0 6.5 3.9 4.7 7.5C20 16.3 12 21 12 21z"/></svg>`;
+}
+
+function setFavState(btn, isFav) {
+  btn.classList.toggle("is-fav", isFav);
+  if (!btn.querySelector(".fav-btn__icon")) {
+    btn.innerHTML = heartIcon(btn.classList.contains("fav-btn--lg") ? 22 : 18);
+  }
+}
+
+/** Клиентская сортировка списка карточек */
+function sortMovies(list, sort) {
+  const arr = [...list];
+  switch (sort) {
+    case "rating.desc":
+      return arr.sort((a, b) => b.rating - a.rating || b.votes - a.votes);
+    case "rating.asc":
+      return arr.sort((a, b) => a.rating - b.rating || a.votes - b.votes);
+    case "year.desc":
+      return arr.sort((a, b) => (b.releaseDate || "").localeCompare(a.releaseDate || ""));
+    case "year.asc":
+      return arr.sort((a, b) => (a.releaseDate || "").localeCompare(b.releaseDate || ""));
+    default:
+      return arr;
+  }
+}
+
+/** sort_by для TMDB /discover */
+function tmdbSortBy(sort) {
+  switch (sort) {
+    case "rating.desc": return "vote_average.desc";
+    case "rating.asc": return "vote_average.asc";
+    case "year.desc": return "primary_release_date.desc";
+    case "year.asc": return "primary_release_date.asc";
+    default: return "popularity.desc";
+  }
+}
+
 function skeletons(box, n = 5) {
   box.innerHTML = "";
   for (let i = 0; i < n; i++) {
@@ -113,6 +163,7 @@ function movieCard(m) {
   const card = document.createElement("button");
   card.type = "button";
   card.className = "movie-card";
+  card.dataset.key = m.key;
   card.innerHTML = `
     <div class="movie-card__poster">
       ${m.poster
@@ -126,7 +177,7 @@ function movieCard(m) {
       <div class="movie-card__desc">${esc(m.desc)}</div>
       <div class="movie-card__foot">
         <span class="rating-pill ${ratingClass(m.rating)}">★ ${m.rating.toFixed(1)} <small>· ${m.votes.toLocaleString("ru-RU")}</small></span>
-        <button class="fav-btn ${isFav ? "is-fav" : ""}" type="button" aria-label="В избранное">${isFav ? "♥" : "♡"}</button>
+        <button class="fav-btn ${isFav ? "is-fav" : ""}" type="button" aria-label="В избранное">${heartIcon(18)}</button>
       </div>
     </div>`;
 
@@ -140,37 +191,126 @@ function movieCard(m) {
 
 /* ---------- Экран: Новинки ---------- */
 
-async function renderFeed() {
+function releaseWindow() {
+  const to = new Date().toISOString().slice(0, 10);
+  const from = new Date();
+  from.setMonth(from.getMonth() - 2);
+  return { from: from.toISOString().slice(0, 10), to };
+}
+
+async function fetchFeedPage(page) {
+  const q = state.query.trim();
+  if (q) {
+    return tmdb("/search/movie", { query: q, include_adult: "false", page: String(page) });
+  }
+  if (state.genre != null) {
+    const params = {
+      with_genres: String(state.genre),
+      sort_by: tmdbSortBy(state.sort),
+      include_adult: "false",
+      page: String(page),
+    };
+    if (state.sort.startsWith("rating.")) params["vote_count.gte"] = "50";
+    return tmdb("/discover/movie", params);
+  }
+  if (state.sort !== "popularity") {
+    const { from, to } = releaseWindow();
+    const params = {
+      sort_by: tmdbSortBy(state.sort),
+      include_adult: "false",
+      region: "RU",
+      "primary_release_date.lte": to,
+      "primary_release_date.gte": from,
+      page: String(page),
+    };
+    if (state.sort.startsWith("rating.")) params["vote_count.gte"] = "50";
+    return tmdb("/discover/movie", params);
+  }
+  return tmdb("/movie/now_playing", { region: "RU", page: String(page) });
+}
+
+function paintFeed(list) {
+  const box = $("#feedList");
+  box.innerHTML = "";
+  list.forEach((m) => box.appendChild(movieCard(m)));
+}
+
+function updateMoreButton() {
+  const more = $("#feedMore");
+  const hasMore = state.page < state.totalPages && state.feedItems.length > 0;
+  more.hidden = !hasMore;
+  more.disabled = state.feedLoading;
+  more.textContent = state.feedLoading ? "Загрузка…" : "Дальше";
+}
+
+/** @param {{ append?: boolean }} [opts] */
+async function renderFeed({ append = false } = {}) {
+  if (state.feedLoading) return;
+
   const box = $("#feedList");
   const empty = $("#feedEmpty");
-  empty.hidden = true;
-  skeletons(box);
-
+  const more = $("#feedMore");
   const q = state.query.trim();
+  const sortSnap = state.sort;
+  const genreSnap = state.genre;
+  const page = append ? state.page + 1 : 1;
+
+  state.feedLoading = true;
+
+  if (!append) {
+    empty.hidden = true;
+    more.hidden = true;
+    state.feedItems = [];
+    state.page = 1;
+    state.totalPages = 1;
+    skeletons(box);
+  } else {
+    updateMoreButton();
+  }
+
+  let failed = false;
   try {
-    let data;
-    if (q) {
-      data = await tmdb("/search/movie", { query: q, include_adult: "false" });
-    } else if (state.genre != null) {
-      data = await tmdb("/discover/movie", {
-        with_genres: String(state.genre),
-        sort_by: "popularity.desc",
-        include_adult: "false",
-      });
-    } else {
-      data = await tmdb("/movie/now_playing", { region: "RU" });
-    }
+    const data = await fetchFeedPage(page);
 
     // запрос мог устареть, пока летел
-    if (state.query.trim() !== q) return;
+    if (
+      state.query.trim() !== q ||
+      state.sort !== sortSnap ||
+      state.genre !== genreSnap
+    ) {
+      return;
+    }
 
-    const list = data.results.map((r) => normalize(r, "movie"));
-    box.innerHTML = "";
-    list.forEach((m) => box.appendChild(movieCard(m)));
+    const pageItems = (data.results || []).map((r) => normalize(r, "movie"));
+    // убираем дубликаты при склейке страниц
+    const seen = new Set(append ? state.feedItems.map((m) => m.key) : []);
+    const unique = pageItems.filter((m) => !seen.has(m.key));
+    state.feedItems = append ? state.feedItems.concat(unique) : unique;
+    state.page = data.page || page;
+    state.totalPages = data.total_pages || 1;
+
+    let list = state.feedItems;
+    // поиск и now_playing / discover без жанра — клиентская сортировка всего накопленного
+    if (q || state.genre == null) list = sortMovies(list, state.sort);
+
+    paintFeed(list);
     empty.hidden = list.length > 0;
     if (!list.length) empty.textContent = "По запросу ничего не найдено.";
   } catch {
-    showError(box, empty, renderFeed);
+    failed = true;
+    if (append) {
+      more.hidden = false;
+      more.disabled = false;
+      more.textContent = "Не удалось · ещё раз";
+    } else {
+      more.hidden = true;
+      showError(box, empty, () => renderFeed());
+    }
+  } finally {
+    state.feedLoading = false;
+    const stillCurrent =
+      state.query.trim() === q && state.sort === sortSnap && state.genre === genreSnap;
+    if (stillCurrent && !failed) updateMoreButton();
   }
 }
 
@@ -239,7 +379,8 @@ document.addEventListener("keydown", (e) => {
 function renderFavorites() {
   const box = $("#favList");
   box.innerHTML = "";
-  [...favorites.values()].forEach((m) => box.appendChild(movieCard(m)));
+  const list = sortMovies([...favorites.values()], state.favSort);
+  list.forEach((m) => box.appendChild(movieCard(m)));
   $("#favEmpty").hidden = favorites.size > 0;
 }
 
@@ -298,10 +439,7 @@ function fillDetails(m, age, reviews) {
     `<span class="rating-pill ${ratingClass(m.rating)}">★ ${m.rating.toFixed(1)} <small>· ${m.votes.toLocaleString("ru-RU")} оценок</small></span>`;
   $("#dDesc").textContent = m.desc;
 
-  const fav = $("#dFav");
-  const isFav = favorites.has(m.key);
-  fav.classList.toggle("is-fav", isFav);
-  fav.textContent = isFav ? "♥" : "♡";
+  setFavState($("#dFav"), favorites.has(m.key));
 
   if (reviews === null) {
     $("#reviewsCount").textContent = "";
@@ -346,12 +484,11 @@ function fillDetails(m, age, reviews) {
 function toggleFavorite(m) {
   favorites.has(m.key) ? favorites.delete(m.key) : favorites.set(m.key, m);
   saveFavorites();
-  if (state.view === "feed") renderFeed();
+  const isFav = favorites.has(m.key);
+  $$(`.movie-card[data-key="${m.key}"] .fav-btn`).forEach((btn) => setFavState(btn, isFav));
   if (state.view === "favorites") renderFavorites();
-  if (state.view === "details") {
-    const isFav = favorites.has(m.key);
-    $("#dFav").classList.toggle("is-fav", isFav);
-    $("#dFav").textContent = isFav ? "♥" : "♡";
+  if (state.view === "details" && state.detailsId === m.key) {
+    setFavState($("#dFav"), isFav);
   }
 }
 
@@ -415,6 +552,41 @@ searchClear.addEventListener("click", () => {
   searchInput.focus();
 });
 
+/* ---------- Сортировка ---------- */
+
+$("#sortSelect").addEventListener("change", () => {
+  state.sort = $("#sortSelect").value;
+  renderFeed();
+});
+
+$("#favSortSelect").addEventListener("change", () => {
+  state.favSort = $("#favSortSelect").value;
+  renderFavorites();
+});
+
+$("#feedMore").addEventListener("click", () => renderFeed({ append: true }));
+
+/* ---------- Вид: список / сетка ---------- */
+
+function applyLayout() {
+  const isGrid = state.layout === "grid";
+  $("#feedList").classList.toggle("feed--grid", isGrid);
+  $("#favList").classList.toggle("feed--grid", isGrid);
+  $$(".layout-toggle__btn").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.layout === state.layout);
+  });
+}
+
+$$(".layout-toggle__btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.layout;
+    if (next !== "list" && next !== "grid") return;
+    state.layout = next;
+    localStorage.setItem(LAYOUT_KEY, next);
+    applyLayout();
+  });
+});
+
 $("#dFav").addEventListener("click", () => {
   const m = cache.get(state.detailsId) || favorites.get(state.detailsId);
   if (m) toggleFavorite(m);
@@ -423,6 +595,7 @@ $("#dFav").addEventListener("click", () => {
 /* ---------- Инициализация ---------- */
 
 (async function init() {
+  applyLayout();
   renderFavorites();
   try {
     await loadGenres();
