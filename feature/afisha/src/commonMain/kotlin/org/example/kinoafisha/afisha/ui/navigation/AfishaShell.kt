@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -48,7 +47,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
-enum class AfishaTab { Feed, Favorites }
+enum class AfishaScreen { Feed, Favorites }
 
 data class DetailsNav(
     val movieId: Long,
@@ -62,35 +61,34 @@ fun AfishaShell(
     val colors = KinoTheme.colors
     val feedState by feedViewModel.state.collectAsState()
 
-    var tab by remember { mutableStateOf(AfishaTab.Feed) }
+    var screen by remember { mutableStateOf(AfishaScreen.Feed) }
     var details by remember { mutableStateOf<DetailsNav?>(null) }
-    var prevTab by remember { mutableStateOf(AfishaTab.Feed) }
-    var drawerOpen by remember { mutableStateOf(false) }
+    var prevScreen by remember { mutableStateOf(AfishaScreen.Feed) }
+    var menuOpen by remember { mutableStateOf(false) }
 
     val showDetails = details != null
     val showSearch = !showDetails
 
     fun openDetails(movie: Movie) {
-        if (!showDetails) prevTab = tab
+        if (!showDetails) prevScreen = screen
         details = DetailsNav(movie.id, movie)
     }
 
-    fun selectTab(next: AfishaTab) {
-        if (next == AfishaTab.Feed &&
+    fun selectScreen(next: AfishaScreen) {
+        if (next == AfishaScreen.Feed &&
             (feedState.genreId != null || feedState.query.isNotBlank())
         ) {
             feedViewModel.resetFiltersAndRefresh()
         }
         details = null
-        tab = next
+        screen = next
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(KinoColors.Bg)) {
-        val useBottomTabs = maxWidth < 720.dp
-        val tabBarHeight = if (useBottomTabs && !showDetails) 64.dp else 0.dp
+        val useBottomNav = maxWidth < 720.dp
+        val bottomNavHeight = if (useBottomNav && !showDetails) 64.dp else 0.dp
 
         Column(Modifier.fillMaxSize()) {
-            // Top bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,18 +99,18 @@ fun AfishaShell(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                BurgerButton(onClick = { drawerOpen = true })
+                BurgerButton(onClick = { menuOpen = true })
 
-                if (!useBottomTabs) {
+                if (!useBottomNav) {
                     TopNavLink(
                         label = "Новинки",
-                        selected = !showDetails && tab == AfishaTab.Feed,
-                        onClick = { selectTab(AfishaTab.Feed) },
+                        selected = !showDetails && screen == AfishaScreen.Feed,
+                        onClick = { selectScreen(AfishaScreen.Feed) },
                     )
                     TopNavLink(
                         label = "Избранное",
-                        selected = !showDetails && tab == AfishaTab.Favorites,
-                        onClick = { selectTab(AfishaTab.Favorites) },
+                        selected = !showDetails && screen == AfishaScreen.Favorites,
+                        onClick = { selectScreen(AfishaScreen.Favorites) },
                     )
                 }
 
@@ -121,12 +119,12 @@ fun AfishaShell(
                         query = feedState.query,
                         onQueryChange = {
                             feedViewModel.onQueryChange(it)
-                            if (tab != AfishaTab.Feed) tab = AfishaTab.Feed
+                            if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
                             details = null
                         },
                         onClear = {
                             feedViewModel.clearQuery()
-                            if (tab != AfishaTab.Feed) tab = AfishaTab.Feed
+                            if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
                         },
                         modifier = Modifier
                             .weight(1f)
@@ -141,7 +139,7 @@ fun AfishaShell(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(bottom = tabBarHeight),
+                    .padding(bottom = bottomNavHeight),
             ) {
                 Box(Modifier.widthIn(max = 960.dp).fillMaxSize().align(Alignment.TopCenter)) {
                     when {
@@ -150,11 +148,11 @@ fun AfishaShell(
                             DetailsScreen(
                                 movieId = nav.movieId,
                                 preview = nav.preview,
-                                onBack = { details = null; tab = prevTab },
+                                onBack = { details = null; screen = prevScreen },
                             )
                         }
 
-                        tab == AfishaTab.Favorites -> {
+                        screen == AfishaScreen.Favorites -> {
                             FavoritesScreen(onOpenDetails = ::openDetails)
                         }
 
@@ -169,7 +167,7 @@ fun AfishaShell(
             }
         }
 
-        if (useBottomTabs && !showDetails) {
+        if (useBottomNav && !showDetails) {
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -178,33 +176,33 @@ fun AfishaShell(
                     .background(colors.bgSoft.copy(alpha = 0.95f)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                BottomTab(
+                BottomNavItem(
                     label = "Новинки",
                     icon = Res.drawable.ic_clapperboard,
-                    selected = tab == AfishaTab.Feed,
-                    onClick = { selectTab(AfishaTab.Feed) },
+                    selected = screen == AfishaScreen.Feed,
+                    onClick = { selectScreen(AfishaScreen.Feed) },
                     modifier = Modifier.weight(1f),
                 )
-                BottomTab(
+                BottomNavItem(
                     label = "Избранное",
                     icon = Res.drawable.ic_heart,
-                    selected = tab == AfishaTab.Favorites,
-                    onClick = { selectTab(AfishaTab.Favorites) },
+                    selected = screen == AfishaScreen.Favorites,
+                    onClick = { selectScreen(AfishaScreen.Favorites) },
                     modifier = Modifier.weight(1f),
                 )
             }
         }
 
         GenreDrawer(
-            open = drawerOpen,
+            open = menuOpen,
             genres = feedState.genres,
             selectedGenreId = feedState.genreId,
             onSelect = { id ->
                 feedViewModel.selectGenre(id)
-                tab = AfishaTab.Feed
+                screen = AfishaScreen.Feed
                 details = null
             },
-            onClose = { drawerOpen = false },
+            onClose = { menuOpen = false },
         )
     }
 }
@@ -250,7 +248,7 @@ private fun TopNavLink(
 }
 
 @Composable
-private fun BottomTab(
+private fun BottomNavItem(
     label: String,
     icon: DrawableResource,
     selected: Boolean,

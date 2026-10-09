@@ -5,9 +5,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -24,10 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_chevron_down
 import kinoafisha.feature.afisha.generated.resources.ic_sort
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
+import org.example.kinoafisha.afisha.util.directionIcon
 import org.example.kinoafisha.afisha.util.label
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.jetbrains.compose.resources.painterResource
@@ -66,10 +70,28 @@ fun SortDropdown(
                         .size(14.dp),
                 )
                 Text(
-                    text = sort.label(forFavorites) + " ▾",
+                    text = sort.label(forFavorites),
                     color = KinoColors.Text,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
+                )
+                sort.directionIcon()?.let { dir ->
+                    Icon(
+                        painter = painterResource(dir),
+                        contentDescription = null,
+                        tint = colors.textDim,
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(12.dp),
+                    )
+                }
+                Icon(
+                    painter = painterResource(Res.drawable.ic_chevron_down),
+                    contentDescription = null,
+                    tint = colors.textDim,
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(14.dp),
                 )
             }
             DropdownMenu(
@@ -80,10 +102,21 @@ fun SortDropdown(
                 SortOrder.entries.forEach { option ->
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = option.label(forFavorites),
-                                color = KinoColors.Text,
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = option.label(forFavorites),
+                                    color = KinoColors.Text,
+                                )
+                                option.directionIcon()?.let { dir ->
+                                    Spacer(Modifier.width(6.dp))
+                                    Icon(
+                                        painter = painterResource(dir),
+                                        contentDescription = null,
+                                        tint = colors.textDim,
+                                        modifier = Modifier.size(12.dp),
+                                    )
+                                }
+                            }
                         },
                         onClick = {
                             expanded = false

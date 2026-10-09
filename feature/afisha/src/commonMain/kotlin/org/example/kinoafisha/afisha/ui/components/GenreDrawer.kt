@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
-import kinoafisha.feature.afisha.generated.resources.ic_ticket
+import kinoafisha.feature.afisha.generated.resources.ic_close
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.core.domain.model.Genre
@@ -77,14 +77,6 @@ fun GenreDrawer(
                             .padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.ic_ticket),
-                            contentDescription = null,
-                            tint = colors.accent2,
-                            modifier = Modifier
-                                .padding(end = 10.dp)
-                                .size(20.dp),
-                        )
                         Text(
                             text = "Жанры",
                             color = KinoColors.Text,
@@ -92,12 +84,14 @@ fun GenreDrawer(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),
                         )
-                        Text(
-                            text = "✕",
-                            color = colors.textDim,
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_close),
+                            contentDescription = "Закрыть",
+                            tint = colors.textDim,
                             modifier = Modifier
                                 .clickable(onClick = onClose)
-                                .padding(8.dp),
+                                .padding(8.dp)
+                                .size(18.dp),
                         )
                     }
                     Column(

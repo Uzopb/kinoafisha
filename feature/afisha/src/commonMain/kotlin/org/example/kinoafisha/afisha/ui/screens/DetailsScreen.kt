@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_arrow_back
 import kinoafisha.feature.afisha.generated.resources.ic_film_strip
 import kinoafisha.feature.afisha.generated.resources.ic_star
 import org.example.kinoafisha.afisha.theme.KinoColors
@@ -76,17 +77,28 @@ fun DetailsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 20.dp),
     ) {
-        Text(
-            text = "Назад",
-            color = colors.textDim,
-            fontWeight = FontWeight.Medium,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier
                 .clip(RoundedCornerShape(KinoRadii.Pill))
                 .border(1.dp, colors.line, RoundedCornerShape(KinoRadii.Pill))
                 .background(colors.bgSoft)
                 .clickable(onClick = onBack)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
-        )
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_arrow_back),
+                contentDescription = null,
+                tint = colors.textDim,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = "Назад",
+                color = colors.textDim,
+                fontWeight = FontWeight.Medium,
+            )
+        }
 
         Spacer(Modifier.height(20.dp))
 

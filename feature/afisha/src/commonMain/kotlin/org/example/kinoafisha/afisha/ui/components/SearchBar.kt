@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_close
 import kinoafisha.feature.afisha.generated.resources.ic_search
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
@@ -68,13 +69,14 @@ fun SearchBar(
             },
         )
         if (query.isNotEmpty()) {
-            Text(
-                text = "✕",
-                color = colors.textDim,
-                fontSize = 13.sp,
+            Icon(
+                painter = painterResource(Res.drawable.ic_close),
+                contentDescription = "Очистить",
+                tint = colors.textDim,
                 modifier = Modifier
                     .clickable(onClick = onClear)
-                    .padding(4.dp),
+                    .padding(4.dp)
+                    .size(14.dp),
             )
         }
     }

@@ -3,8 +3,12 @@ package org.example.kinoafisha.afisha.util
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_arrow_down
+import kinoafisha.feature.afisha.generated.resources.ic_arrow_up
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.SortOrder
+import org.jetbrains.compose.resources.DrawableResource
 
 private const val IMG_CARD = "https://image.tmdb.org/t/p/w342"
 private const val IMG_DETAILS = "https://image.tmdb.org/t/p/w500"
@@ -58,10 +62,15 @@ fun sortMovies(list: List<Movie>, sort: SortOrder): List<Movie> =
 fun SortOrder.label(forFavorites: Boolean = false): String =
     when (this) {
         SortOrder.Popularity -> if (forFavorites) "По умолчанию" else "По популярности"
-        SortOrder.RatingDesc -> "По рейтингу ↓"
-        SortOrder.RatingAsc -> "По рейтингу ↑"
-        SortOrder.YearDesc -> "По году ↓"
-        SortOrder.YearAsc -> "По году ↑"
+        SortOrder.RatingDesc, SortOrder.RatingAsc -> "По рейтингу"
+        SortOrder.YearDesc, SortOrder.YearAsc -> "По году"
+    }
+
+fun SortOrder.directionIcon(): DrawableResource? =
+    when (this) {
+        SortOrder.RatingDesc, SortOrder.YearDesc -> Res.drawable.ic_arrow_down
+        SortOrder.RatingAsc, SortOrder.YearAsc -> Res.drawable.ic_arrow_up
+        SortOrder.Popularity -> null
     }
 
 fun formatVotes(votes: Int): String {
