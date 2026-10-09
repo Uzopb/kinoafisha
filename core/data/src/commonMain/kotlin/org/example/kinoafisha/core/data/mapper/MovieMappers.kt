@@ -103,7 +103,7 @@ fun ReviewDto.toDomain(): Review =
         id = id,
         author = authorDetails?.name?.takeIf { it.isNotBlank() }
             ?: author.takeIf { it.isNotBlank() }
-            ?: "Аноним",
+            ?: "",
         rating = authorDetails?.rating,
         createdAt = createdAt,
         content = content,

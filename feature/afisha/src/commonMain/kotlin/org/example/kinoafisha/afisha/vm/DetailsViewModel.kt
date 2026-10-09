@@ -23,9 +23,9 @@ data class DetailsState(
     val certification: String? = null,
     val reviews: List<Review> = emptyList(),
     val reviewsLoading: Boolean = false,
-    val reviewsError: String? = null,
+    val reviewsError: Boolean = false,
     val loading: Boolean = false,
-    val error: String? = null,
+    val hasError: Boolean = false,
     val isFavorite: Boolean = false,
 )
 
@@ -73,24 +73,20 @@ class DetailsViewModel(
                         certification = details.certification,
                         reviews = details.reviews,
                         reviewsLoading = false,
-                        reviewsError = null,
+                        reviewsError = false,
                         loading = false,
-                        error = null,
+                        hasError = false,
                         isFavorite = movieId in favoriteIds,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 if (_state.value.movieId != movieId) return@launch
                 _state.update {
                     it.copy(
                         loading = false,
                         reviewsLoading = false,
-                        reviewsError = "Не удалось загрузить отзывы.",
-                        error = if (it.movie == null) {
-                            e.message ?: "Не удалось загрузить данные."
-                        } else {
-                            null
-                        },
+                        reviewsError = true,
+                        hasError = it.movie == null,
                     )
                 }
             }

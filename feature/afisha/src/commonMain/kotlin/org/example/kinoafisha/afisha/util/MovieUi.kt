@@ -6,9 +6,13 @@ import kotlin.time.Instant
 import kinoafisha.feature.afisha.generated.resources.Res
 import kinoafisha.feature.afisha.generated.resources.ic_arrow_down
 import kinoafisha.feature.afisha.generated.resources.ic_arrow_up
+import kinoafisha.feature.afisha.generated.resources.sort_popularity
+import kinoafisha.feature.afisha.generated.resources.sort_rating
+import kinoafisha.feature.afisha.generated.resources.sort_year
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 private const val IMG_CARD = "https://image.tmdb.org/t/p/w342"
 private const val IMG_DETAILS = "https://image.tmdb.org/t/p/w500"
@@ -34,8 +38,8 @@ fun Movie.isNew(
     }
 }
 
-fun Movie.metaLine(): String {
-    val year = year?.toString() ?: "—"
+fun Movie.metaLine(emDash: String): String {
+    val year = year?.toString() ?: emDash
     val genrePart = genres.take(3).joinToString(", ") { it.name }
     return if (genrePart.isNotEmpty()) "$year · $genrePart" else year
 }
@@ -59,11 +63,11 @@ fun sortMovies(list: List<Movie>, sort: SortOrder): List<Movie> =
         SortOrder.Popularity -> list
     }
 
-fun SortOrder.label(forFavorites: Boolean = false): String =
+fun SortOrder.labelRes(): StringResource =
     when (this) {
-        SortOrder.Popularity -> if (forFavorites) "По умолчанию" else "По популярности"
-        SortOrder.RatingDesc, SortOrder.RatingAsc -> "По рейтингу"
-        SortOrder.YearDesc, SortOrder.YearAsc -> "По году"
+        SortOrder.Popularity -> Res.string.sort_popularity
+        SortOrder.RatingDesc, SortOrder.RatingAsc -> Res.string.sort_rating
+        SortOrder.YearDesc, SortOrder.YearAsc -> Res.string.sort_year
     }
 
 fun SortOrder.directionIcon(): DrawableResource? =
@@ -84,14 +88,4 @@ fun formatVotes(votes: Int): String {
         i = start
     }
     return sb.toString()
-}
-
-fun pluralRu(n: Int, one: String, few: String, many: String): String {
-    val m10 = n % 10
-    val m100 = n % 100
-    return when {
-        m10 == 1 && m100 != 11 -> one
-        m10 in 2..4 && m100 !in 12..14 -> few
-        else -> many
-    }
 }

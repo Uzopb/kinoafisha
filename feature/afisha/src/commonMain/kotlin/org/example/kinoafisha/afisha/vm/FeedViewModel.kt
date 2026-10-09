@@ -36,13 +36,10 @@ data class FeedState(
     val loading: Boolean = false,
     val loadingMore: Boolean = false,
     val loadMoreError: Boolean = false,
-    val error: String? = null,
+    val hasError: Boolean = false,
     val favoriteIds: Set<Long> = emptySet(),
 ) {
     val hasMore: Boolean get() = page < totalPages && items.isNotEmpty()
-    val title: String
-        get() = genres.find { it.id == genreId }?.name?.replaceFirstChar { it.uppercase() }
-            ?: "Новинки"
 }
 
 @KoinViewModel
@@ -151,13 +148,13 @@ class FeedViewModel(
 
             _state.update {
                 if (append) {
-                    it.copy(loadingMore = true, loadMoreError = false, error = null)
+                    it.copy(loadingMore = true, loadMoreError = false, hasError = false)
                 } else {
                     it.copy(
                         loading = true,
                         loadingMore = false,
                         loadMoreError = false,
-                        error = null,
+                        hasError = false,
                         items = emptyList(),
                         page = 1,
                         totalPages = 1,
@@ -200,10 +197,10 @@ class FeedViewModel(
                         loading = false,
                         loadingMore = false,
                         loadMoreError = false,
-                        error = null,
+                        hasError = false,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val stillCurrent =
                     _state.value.query.trim() == query &&
                         _state.value.genreId == genreId &&
@@ -217,7 +214,7 @@ class FeedViewModel(
                         it.copy(
                             loading = false,
                             loadingMore = false,
-                            error = e.message ?: "Не удалось загрузить данные.",
+                            hasError = true,
                         )
                     }
                 }
