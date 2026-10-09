@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,9 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_search
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SearchBar(
@@ -37,7 +42,14 @@ fun SearchBar(
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("⌕", color = colors.textDim, fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
+        Icon(
+            painter = painterResource(Res.drawable.ic_search),
+            contentDescription = null,
+            tint = colors.textDim,
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .size(16.dp),
+        )
         BasicTextField(
             value = query,
             onValueChange = onQueryChange,

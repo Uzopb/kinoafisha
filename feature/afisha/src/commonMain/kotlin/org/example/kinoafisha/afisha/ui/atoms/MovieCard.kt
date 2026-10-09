@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_film_strip
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
@@ -34,6 +38,7 @@ import org.example.kinoafisha.afisha.util.metaLine
 import org.example.kinoafisha.afisha.util.posterUrl
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.Movie
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun MovieCard(
@@ -180,7 +185,12 @@ private fun Poster(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Text("🎞️", fontSize = 32.sp)
+            Icon(
+                painter = painterResource(Res.drawable.ic_film_strip),
+                contentDescription = null,
+                tint = colors.textDim,
+                modifier = Modifier.size(36.dp),
+            )
         }
         if (movie.isNew()) {
             Text(

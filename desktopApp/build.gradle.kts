@@ -37,6 +37,9 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.example.kinoafisha"
             packageVersion = "1.0.0"
+            linux {
+                iconFile.set(project.file("icon.png"))
+            }
         }
     }
 }

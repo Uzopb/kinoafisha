@@ -1,5 +1,8 @@
 package org.example.kinoafisha
 
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import org.example.kinoafisha.afisha.App
@@ -23,10 +26,13 @@ fun main() {
         )
     }
 
+    val appIcon = BitmapPainter(useResource("ic_app_512.png") { loadImageBitmap(it) })
+
     application {
         Window(
             onCloseRequest = ::exitApplication,
             title = "Kinoafisha",
+            icon = appIcon,
         ) {
             App()
         }

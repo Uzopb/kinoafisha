@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,11 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_sort
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.util.label
 import org.example.kinoafisha.core.domain.model.SortOrder
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SortDropdown(
@@ -43,18 +48,30 @@ fun SortDropdown(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box {
-            Text(
-                text = sort.label(forFavorites) + " ▾",
-                color = KinoColors.Text,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
+            Row(
                 modifier = Modifier
                     .height(40.dp)
                     .border(1.dp, colors.line, shape)
                     .background(colors.bgSoft, shape)
                     .clickable { expanded = true }
-                    .padding(horizontal = 14.dp, vertical = 11.dp),
-            )
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_sort),
+                    contentDescription = null,
+                    tint = colors.textDim,
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .size(14.dp),
+                )
+                Text(
+                    text = sort.label(forFavorites) + " ▾",
+                    color = KinoColors.Text,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },

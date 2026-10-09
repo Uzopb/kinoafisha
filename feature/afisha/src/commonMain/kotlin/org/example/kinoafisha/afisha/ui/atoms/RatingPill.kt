@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,8 +15,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_star
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.util.formatVotes
+import org.jetbrains.compose.resources.painterResource
 import kotlin.math.round
 
 @Composable
@@ -34,8 +39,14 @@ fun RatingPill(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
+        Icon(
+            painter = painterResource(Res.drawable.ic_star),
+            contentDescription = null,
+            tint = tone,
+            modifier = Modifier.size(13.dp),
+        )
         Text(
-            text = "★ ${formatRating(rating)}",
+            text = formatRating(rating),
             color = tone,
             fontSize = 13.sp,
             fontWeight = FontWeight.ExtraBold,

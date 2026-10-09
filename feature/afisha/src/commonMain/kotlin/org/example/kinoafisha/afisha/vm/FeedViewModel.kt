@@ -24,7 +24,6 @@ import org.example.kinoafisha.core.domain.usecase.SetLayoutUseCase
 import org.example.kinoafisha.core.domain.usecase.ToggleFavoriteUseCase
 import org.koin.core.annotation.KoinViewModel
 
-/** Mirrors design/app.js feed-related `state`. */
 data class FeedState(
     val query: String = "",
     val genreId: Int? = null,
@@ -80,7 +79,6 @@ class FeedViewModel(
         }
     }
 
-    /** Debounced search; clears genre (mutually exclusive, as in JS). */
     fun onQueryChange(query: String) {
         _state.update {
             it.copy(
@@ -115,7 +113,6 @@ class FeedViewModel(
         refresh()
     }
 
-    /** Reset genre/query when tapping «Новинки» tab again (design/app.js). */
     fun resetFiltersAndRefresh() {
         searchJob?.cancel()
         _state.update { it.copy(genreId = null, query = "") }

@@ -13,12 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_heart
 import org.example.kinoafisha.afisha.theme.KinoTheme
-import org.example.kinoafisha.afisha.ui.atoms.HeartIcon
 import org.example.kinoafisha.afisha.ui.components.FeedToolbar
 import org.example.kinoafisha.afisha.ui.components.MovieFeed
 import org.example.kinoafisha.afisha.vm.FavoritesViewModel
 import org.example.kinoafisha.core.domain.model.Movie
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -54,7 +56,7 @@ fun FavoritesScreen(
         emptyContent = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
-                    imageVector = HeartIcon,
+                    painter = painterResource(Res.drawable.ic_heart),
                     contentDescription = null,
                     tint = colors.line,
                     modifier = Modifier.size(52.dp).padding(bottom = 10.dp),

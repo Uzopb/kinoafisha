@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,6 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_film_strip
+import kinoafisha.feature.afisha.generated.resources.ic_star
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
@@ -47,6 +51,7 @@ import org.example.kinoafisha.afisha.util.posterUrl
 import org.example.kinoafisha.afisha.vm.DetailsViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.Review
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
 
@@ -205,7 +210,12 @@ private fun PosterLarge(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Text("🎞️", fontSize = 64.sp)
+            Icon(
+                painter = painterResource(Res.drawable.ic_film_strip),
+                contentDescription = null,
+                tint = colors.textDim,
+                modifier = Modifier.size(72.dp),
+            )
         }
     }
 }
@@ -314,11 +324,16 @@ private fun ReviewCard(review: Review) {
             }
             review.rating?.let { rating ->
                 val stars = round(rating / 2).toInt().coerceIn(0, 5)
-                Text(
-                    text = "★".repeat(stars) + "☆".repeat(5 - stars),
-                    color = colors.gold,
-                    fontSize = 13.sp,
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    repeat(5) { index ->
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_star),
+                            contentDescription = null,
+                            tint = if (index < stars) colors.gold else colors.line,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
             }
         }
         Text(

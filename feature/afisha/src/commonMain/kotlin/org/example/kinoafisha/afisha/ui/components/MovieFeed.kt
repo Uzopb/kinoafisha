@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_popcorn
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
@@ -32,6 +36,7 @@ import org.example.kinoafisha.afisha.ui.atoms.MovieCard
 import org.example.kinoafisha.afisha.ui.atoms.MovieCardSkeleton
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.Movie
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun MovieFeed(
@@ -86,8 +91,21 @@ fun MovieFeed(
             Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                 header?.invoke()
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (emptyContent != null) emptyContent()
-                    else Text(emptyText, color = colors.textDim, textAlign = TextAlign.Center)
+                    if (emptyContent != null) {
+                        emptyContent()
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_popcorn),
+                                contentDescription = null,
+                                tint = colors.line,
+                                modifier = Modifier
+                                    .padding(bottom = 10.dp)
+                                    .size(48.dp),
+                            )
+                            Text(emptyText, color = colors.textDim, textAlign = TextAlign.Center)
+                        }
+                    }
                 }
             }
         }

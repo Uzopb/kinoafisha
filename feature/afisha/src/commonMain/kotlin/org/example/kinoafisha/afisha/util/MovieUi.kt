@@ -36,7 +36,6 @@ fun Movie.metaLine(): String {
     return if (genrePart.isNotEmpty()) "$year · $genrePart" else year
 }
 
-/** Client-side sort — mirrors design/app.js `sortMovies` / data mapper. */
 fun sortMovies(list: List<Movie>, sort: SortOrder): List<Movie> =
     when (sort) {
         SortOrder.RatingDesc ->

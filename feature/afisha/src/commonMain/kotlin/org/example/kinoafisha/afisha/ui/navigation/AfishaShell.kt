@@ -31,9 +31,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.ic_clapperboard
+import kinoafisha.feature.afisha.generated.resources.ic_heart
+import kinoafisha.feature.afisha.generated.resources.ic_menu
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoTheme
-import org.example.kinoafisha.afisha.ui.atoms.HeartIcon
 import org.example.kinoafisha.afisha.ui.components.GenreDrawer
 import org.example.kinoafisha.afisha.ui.components.SearchBar
 import org.example.kinoafisha.afisha.ui.screens.DetailsScreen
@@ -41,6 +44,8 @@ import org.example.kinoafisha.afisha.ui.screens.FavoritesScreen
 import org.example.kinoafisha.afisha.ui.screens.FeedScreen
 import org.example.kinoafisha.afisha.vm.FeedViewModel
 import org.example.kinoafisha.core.domain.model.Movie
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 enum class AfishaTab { Feed, Favorites }
@@ -175,18 +180,17 @@ fun AfishaShell(
             ) {
                 BottomTab(
                     label = "Новинки",
+                    icon = Res.drawable.ic_clapperboard,
                     selected = tab == AfishaTab.Feed,
                     onClick = { selectTab(AfishaTab.Feed) },
                     modifier = Modifier.weight(1f),
-                    icon = "⌂",
                 )
                 BottomTab(
                     label = "Избранное",
+                    icon = Res.drawable.ic_heart,
                     selected = tab == AfishaTab.Favorites,
                     onClick = { selectTab(AfishaTab.Favorites) },
                     modifier = Modifier.weight(1f),
-                    icon = null,
-                    useHeart = true,
                 )
             }
         }
@@ -208,24 +212,21 @@ fun AfishaShell(
 @Composable
 private fun BurgerButton(onClick: () -> Unit) {
     val colors = KinoTheme.colors
-    Column(
+    Box(
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(10.dp))
             .border(1.dp, colors.line, RoundedCornerShape(10.dp))
             .background(colors.bgSoft)
-            .clickable(onClick = onClick)
-            .padding(9.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically),
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        repeat(3) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(2.dp)
-                    .background(KinoColors.Text, RoundedCornerShape(2.dp)),
-            )
-        }
+        Icon(
+            painter = painterResource(Res.drawable.ic_menu),
+            contentDescription = "Меню",
+            tint = KinoColors.Text,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -251,11 +252,10 @@ private fun TopNavLink(
 @Composable
 private fun BottomTab(
     label: String,
+    icon: DrawableResource,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: String? = null,
-    useHeart: Boolean = false,
 ) {
     val colors = KinoTheme.colors
     val tint = if (selected) colors.accent2 else colors.textDim
@@ -266,16 +266,12 @@ private fun BottomTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        if (useHeart) {
-            Icon(
-                imageVector = HeartIcon,
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(22.dp),
-            )
-        } else if (icon != null) {
-            Text(icon, color = tint, fontSize = 18.sp)
-        }
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(22.dp),
+        )
         Text(label, color = tint, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
     }
 }
