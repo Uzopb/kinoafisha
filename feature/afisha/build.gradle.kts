@@ -52,12 +52,6 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
         }
-        androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
-        }
-        jvmMain.dependencies {
-            implementation(libs.ktor.client.cio)
-        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }

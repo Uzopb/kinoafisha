@@ -5,17 +5,20 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
-import org.example.kinoafisha.afisha.image.createImageHttpClient
+import io.ktor.client.HttpClient
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.ui.navigation.AfishaNav
+import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 
 @Composable
 fun App() {
+    val imageHttpClient = koinInject<HttpClient>(named("images"))
+
     setSingletonImageLoaderFactory { context ->
-        val httpClient = createImageHttpClient()
         ImageLoader.Builder(context)
             .components {
-                add(KtorNetworkFetcherFactory(httpClient))
+                add(KtorNetworkFetcherFactory(imageHttpClient))
             }
             .crossfade(true)
             .build()
