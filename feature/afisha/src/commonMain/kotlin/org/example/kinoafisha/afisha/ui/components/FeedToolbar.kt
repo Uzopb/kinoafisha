@@ -1,8 +1,8 @@
 package org.example.kinoafisha.afisha.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,33 +34,37 @@ fun FeedToolbar(
     forFavorites: Boolean = false,
 ) {
     val colors = KinoTheme.colors
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(
-            painter = painterResource(
-                if (forFavorites) Res.drawable.ic_heart else Res.drawable.ic_film_roll,
-            ),
-            contentDescription = null,
-            tint = colors.accent2,
-            modifier = Modifier.size(22.dp),
-        )
-        Text(
-            text = title,
-            color = KinoColors.Text,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.weight(1f))
-        LayoutToggle(layout = layout, onLayoutChange = onLayoutChange)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                painter = painterResource(
+                    if (forFavorites) Res.drawable.ic_heart else Res.drawable.ic_film_roll,
+                ),
+                contentDescription = null,
+                tint = colors.accent2,
+                modifier = Modifier.size(22.dp),
+            )
+            Text(
+                text = title,
+                color = KinoColors.Text,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
+            LayoutToggle(layout = layout, onLayoutChange = onLayoutChange)
+        }
         SortDropdown(
             sort = sort,
             onSortChange = onSortChange,
-            forFavorites = forFavorites,
         )
     }
 }
