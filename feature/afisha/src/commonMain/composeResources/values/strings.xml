@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_new">Новинки</string>
+    <string name="nav_favorites">Избранное</string>
+    <string name="cd_menu">Меню</string>
+    <string name="cd_close">Закрыть</string>
+    <string name="cd_clear">Очистить</string>
+    <string name="cd_list">Список</string>
+    <string name="cd_grid">Сетка</string>
+    <string name="cd_favorite_add">В избранное</string>
+    <string name="cd_favorite_remove">Убрать из избранного</string>
+
+    <string name="genres_title">Жанры</string>
+    <string name="search_placeholder">Поиск по названию…</string>
+    <string name="action_back">Назад</string>
+    <string name="action_retry">Повторить</string>
+    <string name="action_load_more">Дальше</string>
+    <string name="action_loading">Загрузка…</string>
+    <string name="action_load_more_failed">Не удалось · ещё раз</string>
+
+    <string name="sort_popularity">Популярность</string>
+    <string name="sort_rating">Рейтинг</string>
+    <string name="sort_year">год</string>
+
+    <string name="feed_empty">По запросу ничего не найдено.</string>
+    <string name="favorites_empty">Пока пусто.</string>
+    <string name="favorites_empty_hint">Пока пусто. Отмечайте понравившееся сердечком — оно появится здесь.</string>
+
+    <string name="error_load">Не удалось загрузить данные.</string>
+    <string name="error_reviews">Не удалось загрузить отзывы.</string>
+
+    <string name="reviews_title">Отзывы</string>
+    <string name="reviews_loading">Загрузка отзывов…</string>
+    <string name="reviews_empty">Отзывов пока нет.</string>
+    <string name="overview_missing">Описание пока отсутствует.</string>
+    <string name="movie_meta_film_year">Фильм · %1$s</string>
+    <string name="votes_suffix">оценок</string>
+    <string name="votes_with_suffix">· %1$s %2$s</string>
+    <string name="votes_only">· %1$s</string>
+    <string name="badge_new">new</string>
+    <string name="em_dash">—</string>
+    <string name="review_author_anonymous">Аноним</string>
+
+    <plurals name="reviews_count">
+        <item quantity="one"> · %1$d отзыв</item>
+        <item quantity="few"> · %1$d отзыва</item>
+        <item quantity="many"> · %1$d отзывов</item>
+        <item quantity="other"> · %1$d отзывов</item>
+    </plurals>
+</resources>
