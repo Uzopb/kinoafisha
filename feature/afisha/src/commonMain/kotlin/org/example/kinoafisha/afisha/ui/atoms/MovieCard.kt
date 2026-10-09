@@ -73,6 +73,7 @@ fun MovieCard(
                 color = KinoColors.Text,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
+                minLines = 2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
