@@ -2,7 +2,6 @@ package org.example.kinoafisha.afisha.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,20 +38,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kinoafisha.feature.afisha.generated.resources.Res
-import kinoafisha.feature.afisha.generated.resources.ic_arrow_back
+import kinoafisha.feature.afisha.generated.resources.action_retry
+import kinoafisha.feature.afisha.generated.resources.em_dash
+import kinoafisha.feature.afisha.generated.resources.error_load
+import kinoafisha.feature.afisha.generated.resources.error_reviews
 import kinoafisha.feature.afisha.generated.resources.ic_film_strip
 import kinoafisha.feature.afisha.generated.resources.ic_star
+import kinoafisha.feature.afisha.generated.resources.movie_meta_film_year
+import kinoafisha.feature.afisha.generated.resources.overview_missing
+import kinoafisha.feature.afisha.generated.resources.reviews_count
+import kinoafisha.feature.afisha.generated.resources.reviews_empty
+import kinoafisha.feature.afisha.generated.resources.reviews_loading
+import kinoafisha.feature.afisha.generated.resources.review_author_anonymous
+import kinoafisha.feature.afisha.generated.resources.reviews_title
+import kinoafisha.feature.afisha.generated.resources.votes_suffix
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.ui.atoms.FavButton
 import org.example.kinoafisha.afisha.ui.atoms.RatingPill
-import org.example.kinoafisha.afisha.util.pluralRu
 import org.example.kinoafisha.afisha.util.posterUrl
 import org.example.kinoafisha.afisha.vm.DetailsViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.Review
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
 
@@ -60,7 +71,6 @@ import kotlin.math.round
 fun DetailsScreen(
     movieId: Long,
     preview: Movie?,
-    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DetailsViewModel = koinViewModel(),
 ) {
@@ -77,31 +87,6 @@ fun DetailsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 20.dp),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .clip(RoundedCornerShape(KinoRadii.Pill))
-                .border(1.dp, colors.line, RoundedCornerShape(KinoRadii.Pill))
-                .background(colors.bgSoft)
-                .clickable(onClick = onBack)
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_arrow_back),
-                contentDescription = null,
-                tint = colors.textDim,
-                modifier = Modifier.size(16.dp),
-            )
-            Text(
-                text = "Назад",
-                color = colors.textDim,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-
-        Spacer(Modifier.height(20.dp))
-
         when {
             state.loading && state.movie == null -> {
                 Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
@@ -109,11 +94,11 @@ fun DetailsScreen(
                 }
             }
 
-            state.error != null && state.movie == null -> {
+            state.hasError && state.movie == null -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.error!!, color = colors.textDim)
+                    Text(stringResource(Res.string.error_load), color = colors.textDim)
                     TextButton(onClick = viewModel::retry) {
-                        Text("Повторить", color = colors.accent2)
+                        Text(stringResource(Res.string.action_retry), color = colors.accent2)
                     }
                 }
             }
@@ -131,16 +116,18 @@ fun DetailsScreen(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Отзывы",
+                        text = stringResource(Res.string.reviews_title),
                         color = KinoColors.Text,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     if (state.reviews.isNotEmpty()) {
                         Text(
-                            text = " · ${state.reviews.size} ${
-                                pluralRu(state.reviews.size, "отзыв", "отзыва", "отзывов")
-                            }",
+                            text = pluralStringResource(
+                                Res.plurals.reviews_count,
+                                state.reviews.size,
+                                state.reviews.size,
+                            ),
                             color = colors.textDim,
                             fontSize = 15.sp,
                             modifier = Modifier.padding(start = 4.dp),
@@ -151,9 +138,18 @@ fun DetailsScreen(
                 Spacer(Modifier.height(14.dp))
 
                 when {
-                    state.reviewsLoading -> Text("Загрузка отзывов…", color = colors.textDim)
-                    state.reviewsError != null -> Text(state.reviewsError!!, color = colors.textDim)
-                    state.reviews.isEmpty() -> Text("Отзывов пока нет.", color = colors.textDim)
+                    state.reviewsLoading -> Text(
+                        stringResource(Res.string.reviews_loading),
+                        color = colors.textDim,
+                    )
+                    state.reviewsError -> Text(
+                        stringResource(Res.string.error_reviews),
+                        color = colors.textDim,
+                    )
+                    state.reviews.isEmpty() -> Text(
+                        stringResource(Res.string.reviews_empty),
+                        color = colors.textDim,
+                    )
                     else -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         state.reviews.forEach { review ->
                             ReviewCard(review)
@@ -241,10 +237,10 @@ private fun InfoBlock(
     modifier: Modifier = Modifier,
 ) {
     val colors = KinoTheme.colors
-    val year = movie.year?.toString() ?: "—"
+    val year = movie.year?.toString() ?: stringResource(Res.string.em_dash)
     val genres = movie.genres.joinToString(", ") { it.name }
     val meta = buildString {
-        append("Фильм · $year")
+        append(stringResource(Res.string.movie_meta_film_year, year))
         if (genres.isNotEmpty()) append(" · $genres")
         if (!certification.isNullOrBlank()) append(" · $certification")
     }
@@ -279,11 +275,11 @@ private fun InfoBlock(
             rating = movie.rating,
             voteCount = movie.voteCount,
             showVotes = true,
-            votesSuffix = "оценок",
+            votesSuffix = stringResource(Res.string.votes_suffix),
             modifier = Modifier.padding(top = 14.dp),
         )
         Text(
-            text = movie.overview.ifBlank { "Описание пока отсутствует." },
+            text = movie.overview.ifBlank { stringResource(Res.string.overview_missing) },
             color = colors.textDim,
             modifier = Modifier
                 .padding(top = 16.dp)
@@ -296,7 +292,8 @@ private fun InfoBlock(
 private fun ReviewCard(review: Review) {
     val colors = KinoTheme.colors
     val shape = RoundedCornerShape(KinoRadii.Lg)
-    val hue = review.author.fold(0) { acc, c -> acc + c.code } % 360
+    val author = review.author.ifBlank { stringResource(Res.string.review_author_anonymous) }
+    val hue = author.fold(0) { acc, c -> acc + c.code } % 360
     val avatarColor = Color.hsl(hue.toFloat(), 0.55f, 0.45f)
     val date = review.createdAt
         ?.take(10)
@@ -322,14 +319,14 @@ private fun ReviewCard(review: Review) {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = review.author.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    text = author.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                     color = KinoColors.OnAccent,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 15.sp,
                 )
             }
             Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(review.author, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = KinoColors.Text)
+                Text(author, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = KinoColors.Text)
                 if (date.isNotEmpty()) {
                     Text(date, color = colors.textDim, fontSize = 12.sp)
                 }

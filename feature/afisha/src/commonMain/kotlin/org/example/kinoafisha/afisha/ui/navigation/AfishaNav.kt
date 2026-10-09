@@ -1,5 +1,7 @@
 package org.example.kinoafisha.afisha.ui.navigation
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,23 +21,38 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.action_back
+import kinoafisha.feature.afisha.generated.resources.cd_menu
 import kinoafisha.feature.afisha.generated.resources.ic_clapperboard
 import kinoafisha.feature.afisha.generated.resources.ic_heart
-import kinoafisha.feature.afisha.generated.resources.ic_menu
+import kinoafisha.feature.afisha.generated.resources.nav_favorites
+import kinoafisha.feature.afisha.generated.resources.nav_new
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoTheme
+import org.example.kinoafisha.afisha.ui.NavBarPadding
+import org.example.kinoafisha.afisha.ui.StatusBarPadding
 import org.example.kinoafisha.afisha.ui.components.GenreDrawer
 import org.example.kinoafisha.afisha.ui.components.SearchBar
 import org.example.kinoafisha.afisha.ui.screens.DetailsScreen
@@ -45,8 +62,10 @@ import org.example.kinoafisha.afisha.vm.FeedViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+private const val MenuBackAnimNanos = 320_000_000L
 enum class AfishaScreen { Feed, Favorites }
 
 data class DetailsNav(
@@ -54,8 +73,11 @@ data class DetailsNav(
     val preview: Movie?,
 )
 
+private val TopBarHeight = 64.dp
+private val BottomNavHeight = 64.dp
+
 @Composable
-fun AfishaShell(
+fun AfishaNav(
     feedViewModel: FeedViewModel = koinViewModel(),
 ) {
     val colors = KinoTheme.colors
@@ -86,29 +108,42 @@ fun AfishaShell(
 
     BoxWithConstraints(Modifier.fillMaxSize().background(KinoColors.Bg)) {
         val useBottomNav = maxWidth < 720.dp
-        val bottomNavHeight = if (useBottomNav && !showDetails) 64.dp else 0.dp
+        val showBottomNav = useBottomNav && !showDetails
+        val bottomChrome =
+            NavBarPadding + if (showBottomNav) BottomNavHeight else 0.dp
 
         Column(Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
                     .background(KinoColors.Bg.copy(alpha = 0.92f))
                     .border(width = 0.dp, color = colors.line)
+                    .height(TopBarHeight + StatusBarPadding)
+                    .padding(top = StatusBarPadding)
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                BurgerButton(onClick = { menuOpen = true })
+                MenuBackButton(
+                    showAsBack = showDetails,
+                    onClick = {
+                        if (showDetails) {
+                            details = null
+                            screen = prevScreen
+                        } else {
+                            menuOpen = true
+                        }
+                    },
+                )
 
                 if (!useBottomNav) {
                     TopNavLink(
-                        label = "Новинки",
+                        label = stringResource(Res.string.nav_new),
                         selected = !showDetails && screen == AfishaScreen.Feed,
                         onClick = { selectScreen(AfishaScreen.Feed) },
                     )
                     TopNavLink(
-                        label = "Избранное",
+                        label = stringResource(Res.string.nav_favorites),
                         selected = !showDetails && screen == AfishaScreen.Favorites,
                         onClick = { selectScreen(AfishaScreen.Favorites) },
                     )
@@ -139,7 +174,7 @@ fun AfishaShell(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(bottom = bottomNavHeight),
+                    .padding(bottom = bottomChrome),
             ) {
                 Box(Modifier.widthIn(max = 960.dp).fillMaxSize().align(Alignment.TopCenter)) {
                     when {
@@ -148,7 +183,6 @@ fun AfishaShell(
                             DetailsScreen(
                                 movieId = nav.movieId,
                                 preview = nav.preview,
-                                onBack = { details = null; screen = prevScreen },
                             )
                         }
 
@@ -167,29 +201,35 @@ fun AfishaShell(
             }
         }
 
-        if (useBottomNav && !showDetails) {
-            Row(
+        if (showBottomNav) {
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(64.dp)
                     .background(colors.bgSoft.copy(alpha = 0.95f)),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                BottomNavItem(
-                    label = "Новинки",
-                    icon = Res.drawable.ic_clapperboard,
-                    selected = screen == AfishaScreen.Feed,
-                    onClick = { selectScreen(AfishaScreen.Feed) },
-                    modifier = Modifier.weight(1f),
-                )
-                BottomNavItem(
-                    label = "Избранное",
-                    icon = Res.drawable.ic_heart,
-                    selected = screen == AfishaScreen.Favorites,
-                    onClick = { selectScreen(AfishaScreen.Favorites) },
-                    modifier = Modifier.weight(1f),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(BottomNavHeight),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    BottomNavItem(
+                        label = stringResource(Res.string.nav_new),
+                        icon = Res.drawable.ic_clapperboard,
+                        selected = screen == AfishaScreen.Feed,
+                        onClick = { selectScreen(AfishaScreen.Feed) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    BottomNavItem(
+                        label = stringResource(Res.string.nav_favorites),
+                        icon = Res.drawable.ic_heart,
+                        selected = screen == AfishaScreen.Favorites,
+                        onClick = { selectScreen(AfishaScreen.Favorites) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Spacer(Modifier.height(NavBarPadding))
             }
         }
 
@@ -208,24 +248,83 @@ fun AfishaShell(
 }
 
 @Composable
-private fun BurgerButton(onClick: () -> Unit) {
+private fun MenuBackButton(
+    showAsBack: Boolean,
+    onClick: () -> Unit,
+) {
     val colors = KinoTheme.colors
+    val progress = remember { Animatable(if (showAsBack) 1f else 0f) }
+    // Покадровая анимация через withFrameNanos — не зависит от Animator duration scale.
+    LaunchedEffect(showAsBack) {
+        val target = if (showAsBack) 1f else 0f
+        val start = progress.value
+        if (start == target) return@LaunchedEffect
+        val startNanos = withFrameNanos { it }
+        while (true) {
+            val t = ((withFrameNanos { it } - startNanos).toFloat() / MenuBackAnimNanos)
+                .coerceIn(0f, 1f)
+            progress.snapTo(lerp(start, target, FastOutSlowInEasing.transform(t)))
+            if (t >= 1f) break
+        }
+    }
+    val description = stringResource(
+        if (showAsBack) Res.string.action_back else Res.string.cd_menu,
+    )
+    val iconColor = KinoColors.Text
     Box(
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(10.dp))
             .border(1.dp, colors.line, RoundedCornerShape(10.dp))
             .background(colors.bgSoft)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            painter = painterResource(Res.drawable.ic_menu),
-            contentDescription = "Меню",
-            tint = KinoColors.Text,
-            modifier = Modifier.size(20.dp),
-        )
-    }
+            .semantics { contentDescription = description }
+            .clickable(onClick = onClick)
+            .drawBehind {
+                // Рисуем в центре кнопки (иконка ~20dp)
+                val iconSize = size.minDimension * 0.5f
+                val origin = Offset(
+                    (size.width - iconSize) / 2f,
+                    (size.height - iconSize) / 2f,
+                )
+                drawMenuArrow(
+                    progress = progress.value,
+                    color = iconColor,
+                    origin = origin,
+                    iconSize = iconSize,
+                )
+            },
+    )
+}
+
+private fun DrawScope.drawMenuArrow(
+    progress: Float,
+    color: Color,
+    origin: Offset,
+    iconSize: Float,
+) {
+    val stroke = iconSize * 0.1f
+    val left = origin.x + iconSize * 0.12f
+    val right = origin.x + iconSize * 0.88f
+    val cy = origin.y + iconSize / 2f
+    val gap = iconSize * 0.26f
+
+    // 0 = три горизонтальные линии, 1 = стрелка ←
+    val topStart = Offset(left, lerp(cy - gap, cy, progress))
+    val topEnd = Offset(
+        lerp(right, left + iconSize * 0.42f, progress),
+        lerp(cy - gap, cy - iconSize * 0.28f, progress),
+    )
+    val midStart = Offset(lerp(left, left + iconSize * 0.1f, progress), cy)
+    val midEnd = Offset(right, cy)
+    val botStart = Offset(left, lerp(cy + gap, cy, progress))
+    val botEnd = Offset(
+        lerp(right, left + iconSize * 0.42f, progress),
+        lerp(cy + gap, cy + iconSize * 0.28f, progress),
+    )
+
+    drawLine(color, topStart, topEnd, stroke, StrokeCap.Round)
+    drawLine(color, midStart, midEnd, stroke, StrokeCap.Round)
+    drawLine(color, botStart, botEnd, stroke, StrokeCap.Round)
 }
 
 @Composable

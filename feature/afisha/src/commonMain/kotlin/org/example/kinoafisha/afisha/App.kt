@@ -7,7 +7,7 @@ import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import org.example.kinoafisha.afisha.image.createImageHttpClient
 import org.example.kinoafisha.afisha.theme.KinoTheme
-import org.example.kinoafisha.afisha.ui.navigation.AfishaShell
+import org.example.kinoafisha.afisha.ui.navigation.AfishaNav
 
 @Composable
 fun App() {
@@ -22,6 +22,6 @@ fun App() {
     }
 
     KinoTheme {
-        AfishaShell()
+        AfishaNav()
     }
 }
