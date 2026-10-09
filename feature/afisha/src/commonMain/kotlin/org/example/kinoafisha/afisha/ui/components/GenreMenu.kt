@@ -30,11 +30,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.cd_close
+import kinoafisha.feature.afisha.generated.resources.genres_title
 import kinoafisha.feature.afisha.generated.resources.ic_close
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoTheme
+import org.example.kinoafisha.afisha.ui.NavBarPadding
+import org.example.kinoafisha.afisha.ui.StatusBarPadding
 import org.example.kinoafisha.core.domain.model.Genre
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GenreDrawer(
@@ -69,7 +74,7 @@ fun GenreDrawer(
                         .widthIn(max = 300.dp)
                         .fillMaxWidth(0.85f)
                         .background(colors.bgSoft)
-                        .padding(bottom = 16.dp),
+                        .padding(top = StatusBarPadding, bottom = NavBarPadding),
                 ) {
                     Row(
                         modifier = Modifier
@@ -78,7 +83,7 @@ fun GenreDrawer(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Жанры",
+                            text = stringResource(Res.string.genres_title),
                             color = KinoColors.Text,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
@@ -86,7 +91,7 @@ fun GenreDrawer(
                         )
                         Icon(
                             painter = painterResource(Res.drawable.ic_close),
-                            contentDescription = "Закрыть",
+                            contentDescription = stringResource(Res.string.cd_close),
                             tint = colors.textDim,
                             modifier = Modifier
                                 .clickable(onClick = onClose)

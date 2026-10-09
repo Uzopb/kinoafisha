@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.cd_grid
+import kinoafisha.feature.afisha.generated.resources.cd_list
 import kinoafisha.feature.afisha.generated.resources.ic_grid
 import kinoafisha.feature.afisha.generated.resources.ic_list
 import org.example.kinoafisha.afisha.theme.KinoColors
@@ -25,6 +27,7 @@ import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LayoutToggle(
@@ -44,13 +47,13 @@ fun LayoutToggle(
     ) {
         LayoutBtn(
             icon = Res.drawable.ic_list,
-            contentDescription = "Список",
+            contentDescription = stringResource(Res.string.cd_list),
             selected = layout == FeedLayout.List,
             onClick = { onLayoutChange(FeedLayout.List) },
         )
         LayoutBtn(
             icon = Res.drawable.ic_grid,
-            contentDescription = "Сетка",
+            contentDescription = stringResource(Res.string.cd_grid),
             selected = layout == FeedLayout.Grid,
             onClick = { onLayoutChange(FeedLayout.Grid) },
         )

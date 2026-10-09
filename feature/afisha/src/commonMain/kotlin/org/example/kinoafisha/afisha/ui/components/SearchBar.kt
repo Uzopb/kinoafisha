@@ -19,12 +19,15 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.cd_clear
 import kinoafisha.feature.afisha.generated.resources.ic_close
 import kinoafisha.feature.afisha.generated.resources.ic_search
+import kinoafisha.feature.afisha.generated.resources.search_placeholder
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchBar(
@@ -63,7 +66,11 @@ fun SearchBar(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             decorationBox = { inner ->
                 if (query.isEmpty()) {
-                    Text("Поиск по названию…", color = colors.textDim, fontSize = 14.sp)
+                    Text(
+                        stringResource(Res.string.search_placeholder),
+                        color = colors.textDim,
+                        fontSize = 14.sp,
+                    )
                 }
                 inner()
             },
@@ -71,7 +78,7 @@ fun SearchBar(
         if (query.isNotEmpty()) {
             Icon(
                 painter = painterResource(Res.drawable.ic_close),
-                contentDescription = "Очистить",
+                contentDescription = stringResource(Res.string.cd_clear),
                 tint = colors.textDim,
                 modifier = Modifier
                     .clickable(onClick = onClear)

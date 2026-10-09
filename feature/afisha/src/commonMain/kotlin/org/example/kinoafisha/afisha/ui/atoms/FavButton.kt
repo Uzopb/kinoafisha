@@ -15,10 +15,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.cd_favorite_add
+import kinoafisha.feature.afisha.generated.resources.cd_favorite_remove
 import kinoafisha.feature.afisha.generated.resources.ic_heart
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FavButton(
@@ -51,7 +54,9 @@ fun FavButton(
     ) {
         Icon(
             painter = painterResource(Res.drawable.ic_heart),
-            contentDescription = if (isFavorite) "Убрать из избранного" else "В избранное",
+            contentDescription = stringResource(
+                if (isFavorite) Res.string.cd_favorite_remove else Res.string.cd_favorite_add,
+            ),
             modifier = Modifier.size(iconSize),
             tint = if (isFavorite) KinoColors.OnAccent else colors.textDim,
         )

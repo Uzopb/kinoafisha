@@ -14,13 +14,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.favorites_empty
+import kinoafisha.feature.afisha.generated.resources.favorites_empty_hint
 import kinoafisha.feature.afisha.generated.resources.ic_heart
+import kinoafisha.feature.afisha.generated.resources.nav_favorites
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.ui.components.FeedToolbar
 import org.example.kinoafisha.afisha.ui.components.MovieFeed
 import org.example.kinoafisha.afisha.vm.FavoritesViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -38,14 +42,14 @@ fun FavoritesScreen(
         layout = state.layout,
         loading = false,
         error = null,
-        emptyText = "Пока пусто.",
+        emptyText = stringResource(Res.string.favorites_empty),
         onRetry = {},
         onOpen = onOpenDetails,
         onToggleFavorite = viewModel::toggleFav,
         modifier = modifier,
         header = {
             FeedToolbar(
-                title = "Избранное",
+                title = stringResource(Res.string.nav_favorites),
                 layout = state.layout,
                 sort = state.sort,
                 onLayoutChange = viewModel::setLayout,
@@ -62,7 +66,7 @@ fun FavoritesScreen(
                     modifier = Modifier.size(52.dp).padding(bottom = 10.dp),
                 )
                 Text(
-                    text = "Пока пусто. Отмечайте понравившееся сердечком — оно появится здесь.",
+                    text = stringResource(Res.string.favorites_empty_hint),
                     color = colors.textDim,
                     textAlign = TextAlign.Center,
                     fontSize = 14.sp,

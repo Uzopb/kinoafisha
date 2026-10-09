@@ -17,9 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
 import kinoafisha.feature.afisha.generated.resources.ic_star
+import kinoafisha.feature.afisha.generated.resources.votes_only
+import kinoafisha.feature.afisha.generated.resources.votes_with_suffix
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.util.formatVotes
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.round
 
 @Composable
@@ -54,7 +57,11 @@ fun RatingPill(
         if (showVotes) {
             val votes = formatVotes(voteCount)
             Text(
-                text = if (votesSuffix != null) "· $votes $votesSuffix" else "· $votes",
+                text = if (votesSuffix != null) {
+                    stringResource(Res.string.votes_with_suffix, votes, votesSuffix)
+                } else {
+                    stringResource(Res.string.votes_only, votes)
+                },
                 color = colors.textDim,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,

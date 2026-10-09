@@ -32,16 +32,16 @@ import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.util.directionIcon
-import org.example.kinoafisha.afisha.util.label
+import org.example.kinoafisha.afisha.util.labelRes
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SortDropdown(
     sort: SortOrder,
     onSortChange: (SortOrder) -> Unit,
     modifier: Modifier = Modifier,
-    forFavorites: Boolean = false,
 ) {
     val colors = KinoTheme.colors
     var expanded by remember { mutableStateOf(false) }
@@ -70,7 +70,7 @@ fun SortDropdown(
                         .size(14.dp),
                 )
                 Text(
-                    text = sort.label(forFavorites),
+                    text = stringResource(sort.labelRes()),
                     color = KinoColors.Text,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
@@ -104,7 +104,7 @@ fun SortDropdown(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = option.label(forFavorites),
+                                    text = stringResource(option.labelRes()),
                                     color = KinoColors.Text,
                                 )
                                 option.directionIcon()?.let { dir ->

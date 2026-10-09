@@ -28,6 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.action_load_more
+import kinoafisha.feature.afisha.generated.resources.action_load_more_failed
+import kinoafisha.feature.afisha.generated.resources.action_loading
+import kinoafisha.feature.afisha.generated.resources.action_retry
 import kinoafisha.feature.afisha.generated.resources.ic_popcorn
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
@@ -37,6 +41,7 @@ import org.example.kinoafisha.afisha.ui.atoms.MovieCardSkeleton
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.Movie
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MovieFeed(
@@ -81,7 +86,11 @@ fun MovieFeed(
                         textAlign = TextAlign.Center,
                     )
                     TextButton(onClick = onRetry) {
-                        Text("Повторить", color = colors.accent2, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            stringResource(Res.string.action_retry),
+                            color = colors.accent2,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }
@@ -198,9 +207,9 @@ fun LoadMoreButton(
     ) {
         Text(
             text = when {
-                loading -> "Загрузка…"
-                failed -> "Не удалось · ещё раз"
-                else -> "Дальше"
+                loading -> stringResource(Res.string.action_loading)
+                failed -> stringResource(Res.string.action_load_more_failed)
+                else -> stringResource(Res.string.action_load_more)
             },
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,

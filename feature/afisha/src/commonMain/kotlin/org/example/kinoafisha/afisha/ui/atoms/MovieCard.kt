@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kinoafisha.feature.afisha.generated.resources.Res
+import kinoafisha.feature.afisha.generated.resources.badge_new
+import kinoafisha.feature.afisha.generated.resources.em_dash
 import kinoafisha.feature.afisha.generated.resources.ic_film_strip
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
@@ -39,6 +41,7 @@ import org.example.kinoafisha.afisha.util.posterUrl
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.Movie
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MovieCard(
@@ -51,6 +54,7 @@ fun MovieCard(
 ) {
     val colors = KinoTheme.colors
     val shape = RoundedCornerShape(KinoRadii.Lg)
+    val meta = movie.metaLine(stringResource(Res.string.em_dash))
 
     if (layout == FeedLayout.Grid) {
         Column(
@@ -73,7 +77,7 @@ fun MovieCard(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = movie.metaLine(),
+                text = meta,
                 color = colors.textDim,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -124,7 +128,7 @@ fun MovieCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = movie.metaLine(),
+                    text = meta,
                     color = colors.textDim,
                     fontSize = 13.sp,
                     maxLines = 1,
@@ -194,7 +198,7 @@ private fun Poster(
         }
         if (movie.isNew()) {
             Text(
-                text = "new",
+                text = stringResource(Res.string.badge_new),
                 color = colors.accent2,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.ExtraBold,
