@@ -37,7 +37,7 @@ import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.util.isNew
 import org.example.kinoafisha.afisha.util.metaLine
-import org.example.kinoafisha.afisha.util.posterUrl
+import org.example.kinoafisha.afisha.util.posterModel
 import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.Movie
 import org.jetbrains.compose.resources.painterResource
@@ -174,7 +174,7 @@ private fun Poster(
     modifier: Modifier = Modifier,
 ) {
     val colors = KinoTheme.colors
-    val url = movie.posterUrl()
+    val model = movie.posterModel()
     Box(
         modifier = modifier
             .aspectRatio(2f / 3f)
@@ -182,9 +182,9 @@ private fun Poster(
             .background(colors.bgHover),
         contentAlignment = Alignment.Center,
     ) {
-        if (url != null) {
+        if (model != null) {
             AsyncImage(
-                model = url,
+                model = model,
                 contentDescription = movie.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),

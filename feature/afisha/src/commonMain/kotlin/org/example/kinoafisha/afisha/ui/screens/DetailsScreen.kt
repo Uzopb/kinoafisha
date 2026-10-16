@@ -57,7 +57,7 @@ import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
 import org.example.kinoafisha.afisha.ui.atoms.FavButton
 import org.example.kinoafisha.afisha.ui.atoms.RatingPill
-import org.example.kinoafisha.afisha.util.posterUrl
+import org.example.kinoafisha.afisha.util.posterModel
 import org.example.kinoafisha.afisha.vm.DetailsViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.Review
@@ -200,7 +200,7 @@ private fun PosterLarge(
     modifier: Modifier = Modifier,
 ) {
     val colors = KinoTheme.colors
-    val url = movie.posterUrl(large = true)
+    val model = movie.posterModel(large = true)
     Box(
         modifier = modifier
             .widthIn(max = 240.dp)
@@ -210,9 +210,9 @@ private fun PosterLarge(
             .background(colors.bgHover),
         contentAlignment = Alignment.Center,
     ) {
-        if (url != null) {
+        if (model != null) {
             AsyncImage(
-                model = url,
+                model = model,
                 contentDescription = movie.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),

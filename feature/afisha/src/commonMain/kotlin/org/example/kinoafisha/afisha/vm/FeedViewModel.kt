@@ -2,17 +2,24 @@ package org.example.kinoafisha.afisha.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.example.kinoafisha.afisha.util.sortMovies
+import org.example.kinoafisha.core.domain.model.FeedKey
 import org.example.kinoafisha.core.domain.model.FeedLayout
+import org.example.kinoafisha.core.domain.model.FeedSnapshot
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.SortOrder
@@ -42,6 +49,7 @@ data class FeedState(
     val hasMore: Boolean get() = page < totalPages && items.isNotEmpty()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @KoinViewModel
 class FeedViewModel(
     private val getFeed: GetFeedUseCase,
@@ -52,81 +60,116 @@ class FeedViewModel(
     private val setLayoutUseCase: SetLayoutUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(FeedState(loading = true))
-    val state: StateFlow<FeedState> = _state.asStateFlow()
+    private val query = MutableStateFlow("")
+    private val genreId = MutableStateFlow<Int?>(null)
+    private val sort = MutableStateFlow(SortOrder.Popularity)
+    private val loadingMore = MutableStateFlow(false)
+    private val loadMoreError = MutableStateFlow(false)
+    private val syncError = MutableStateFlow(false)
+
+    private val feedKeyFlow = combine(query, genreId, sort) { q, g, s ->
+        FeedKey(query = q, genreId = g, sort = s)
+    }.distinctUntilChanged()
+
+    private val feedKey: StateFlow<FeedKey> =
+        feedKeyFlow.stateIn(viewModelScope, SharingStarted.Eagerly, FeedKey())
+
+    private val feedSnapshot: StateFlow<FeedSnapshot> = feedKeyFlow
+        .flatMapLatest { key -> getFeed.observe(key) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, FeedSnapshot(key = FeedKey()))
+
+    private val uiExtras = combine(
+        getGenres.observe(),
+        observeLayout(),
+        observeFavorites().map { favs -> favs.map { it.id }.toSet() },
+        loadingMore,
+        loadMoreError,
+    ) { genres, layout, favoriteIds, more, moreErr ->
+        UiExtras(genres, layout, favoriteIds, more, moreErr)
+    }
+
+    val state: StateFlow<FeedState> = combine(
+        feedKey,
+        feedSnapshot,
+        uiExtras,
+        syncError,
+    ) { key, snap, extras, err ->
+        FeedState(
+            query = key.query,
+            genreId = key.genreId,
+            genres = extras.genres,
+            sort = key.sort,
+            page = snap.page,
+            totalPages = snap.totalPages,
+            layout = extras.layout,
+            items = snap.items,
+            loading = snap.refreshing && snap.items.isEmpty(),
+            loadingMore = extras.loadingMore,
+            loadMoreError = extras.loadMoreError,
+            hasError = err && snap.items.isEmpty(),
+            favoriteIds = extras.favoriteIds,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, FeedState(loading = true))
 
     private var searchJob: Job? = null
-    private var loadJob: Job? = null
+    private var syncJob: Job? = null
 
     init {
-        observeFavorites()
-            .onEach { favs ->
-                _state.update { it.copy(favoriteIds = favs.map { m -> m.id }.toSet()) }
-            }
-            .launchIn(viewModelScope)
-
-        observeLayout()
-            .onEach { layout -> _state.update { it.copy(layout = layout) } }
+        feedKeyFlow
+            .onEach { key -> sync(key, page = 1, append = false) }
             .launchIn(viewModelScope)
 
         viewModelScope.launch {
-            runCatching { getGenres() }
-                .onSuccess { list -> _state.update { it.copy(genres = list) } }
-            refresh()
+            runCatching { getGenres.sync() }
         }
     }
 
-    fun onQueryChange(query: String) {
-        _state.update {
-            it.copy(
-                query = query,
-                genreId = if (query.isNotBlank()) null else it.genreId,
-            )
-        }
+    fun onQueryChange(value: String) {
+        query.update { value }
+        if (value.isNotBlank()) genreId.value = null
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
-            refresh()
+            sync(feedKey.value, page = 1, append = false)
         }
     }
 
     fun clearQuery() {
         searchJob?.cancel()
-        _state.update { it.copy(query = "") }
-        refresh()
+        query.value = ""
+        sync(feedKey.value, page = 1, append = false)
     }
 
-    fun setSort(sort: SortOrder) {
-        if (_state.value.sort == sort) return
-        _state.update { it.copy(sort = sort) }
-        refresh()
+    fun setSort(value: SortOrder) {
+        if (sort.value == value) return
+        sort.value = value
     }
 
-    fun selectGenre(genreId: Int?) {
+    fun selectGenre(id: Int?) {
         searchJob?.cancel()
-        val current = _state.value.genreId
-        val next = if (genreId != null && genreId == current) null else genreId
-        _state.update { it.copy(genreId = next, query = "") }
-        refresh()
+        val current = genreId.value
+        genreId.value = if (id != null && id == current) null else id
+        query.value = ""
     }
 
     fun resetFiltersAndRefresh() {
         searchJob?.cancel()
-        _state.update { it.copy(genreId = null, query = "") }
-        refresh()
+        genreId.value = null
+        query.value = ""
+        sync(feedKey.value, page = 1, append = false)
     }
 
     fun loadMore() {
-        val s = _state.value
-        if (s.loading || s.loadingMore || !s.hasMore) return
-        load(append = true)
+        val snap = feedSnapshot.value
+        if (state.value.loading || loadingMore.value || !snap.hasMore) return
+        sync(feedKey.value, page = snap.page + 1, append = true)
     }
 
-    fun retry() = refresh()
+    fun retry() = sync(feedKey.value, page = 1, append = false)
 
-    fun setLayout(layout: FeedLayout) {
-        if (_state.value.layout == layout) return
-        viewModelScope.launch { setLayoutUseCase(layout) }
+    fun setLayout(value: FeedLayout) {
+        if (state.value.layout == value) return
+        viewModelScope.launch { setLayoutUseCase(value) }
     }
 
     fun toggleFav(movie: Movie) {
@@ -135,92 +178,39 @@ class FeedViewModel(
         }
     }
 
-    private fun refresh() = load(append = false)
-
-    private fun load(append: Boolean) {
-        loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            val snap = _state.value
-            val query = snap.query.trim()
-            val genreId = snap.genreId
-            val sort = snap.sort
-            val page = if (append) snap.page + 1 else 1
-
-            _state.update {
-                if (append) {
-                    it.copy(loadingMore = true, loadMoreError = false, hasError = false)
-                } else {
-                    it.copy(
-                        loading = true,
-                        loadingMore = false,
-                        loadMoreError = false,
-                        hasError = false,
-                        items = emptyList(),
-                        page = 1,
-                        totalPages = 1,
-                    )
-                }
+    private fun sync(key: FeedKey, page: Int, append: Boolean) {
+        if (!append) syncJob?.cancel()
+        val job = viewModelScope.launch {
+            if (append) {
+                loadingMore.value = true
+                loadMoreError.value = false
+            } else {
+                syncError.value = false
             }
-
             try {
-                val paged = getFeed(
-                    query = query.takeIf { it.isNotEmpty() },
-                    genreId = genreId,
-                    sort = sort,
-                    page = page,
-                )
-
-                val stillCurrent =
-                    _state.value.query.trim() == query &&
-                        _state.value.genreId == genreId &&
-                        _state.value.sort == sort
-                if (!stillCurrent) return@launch
-
-                val merged = if (append) {
-                    val seen = _state.value.items.map { it.id }.toSet()
-                    _state.value.items + paged.items.filter { it.id !in seen }
-                } else {
-                    paged.items
-                }
-
-                val display = if (query.isNotEmpty() || genreId == null) {
-                    sortMovies(merged, sort)
-                } else {
-                    merged
-                }
-
-                _state.update {
-                    it.copy(
-                        items = display,
-                        page = paged.page,
-                        totalPages = paged.totalPages,
-                        loading = false,
-                        loadingMore = false,
-                        loadMoreError = false,
-                        hasError = false,
-                    )
-                }
+                getFeed.sync(key, page = page, append = append)
+                syncError.value = false
+                loadMoreError.value = false
             } catch (_: Exception) {
-                val stillCurrent =
-                    _state.value.query.trim() == query &&
-                        _state.value.genreId == genreId &&
-                        _state.value.sort == sort
-                if (!stillCurrent) return@launch
-
-                _state.update {
-                    if (append) {
-                        it.copy(loadingMore = false, loadMoreError = true)
-                    } else {
-                        it.copy(
-                            loading = false,
-                            loadingMore = false,
-                            hasError = true,
-                        )
-                    }
+                if (append) {
+                    loadMoreError.value = true
+                } else {
+                    syncError.value = feedSnapshot.value.items.isEmpty()
                 }
+            } finally {
+                if (append) loadingMore.value = false
             }
         }
+        if (!append) syncJob = job
     }
+
+    private data class UiExtras(
+        val genres: List<Genre>,
+        val layout: FeedLayout,
+        val favoriteIds: Set<Long>,
+        val loadingMore: Boolean,
+        val loadMoreError: Boolean,
+    )
 
     private companion object {
         const val SEARCH_DEBOUNCE_MS = 400L

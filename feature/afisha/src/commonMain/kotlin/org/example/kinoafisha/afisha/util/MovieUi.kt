@@ -24,6 +24,10 @@ fun Movie.posterUrl(large: Boolean = false): String? {
     return (if (large) IMG_DETAILS else IMG_CARD) + path
 }
 
+/** Офлайн-first: байты из БД, иначе URL */
+fun Movie.posterModel(large: Boolean = false): Any? =
+    posterBytes ?: posterUrl(large)
+
 @OptIn(ExperimentalTime::class)
 fun Movie.isNew(
     nowMillis: Long = Clock.System.now().toEpochMilliseconds(),
