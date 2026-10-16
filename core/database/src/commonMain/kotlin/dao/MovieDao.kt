@@ -13,6 +13,12 @@ interface MovieDao {
     @Query("SELECT * FROM movies WHERE id = :id")
     suspend fun getById(id: Long): MovieEntity?
 
+    @Query("SELECT * FROM movies WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<Long>): List<MovieEntity>
+
+    @Upsert
+    suspend fun upsert(movie: MovieEntity)
+
     @Upsert
     suspend fun upsertAll(movies: List<MovieEntity>)
 
