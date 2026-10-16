@@ -1,22 +1,23 @@
 package org.example.kinoafisha.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import org.example.kinoafisha.core.domain.model.FeedKey
 import org.example.kinoafisha.core.domain.model.FeedLayout
+import org.example.kinoafisha.core.domain.model.FeedSnapshot
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.MovieDetails
-import org.example.kinoafisha.core.domain.model.PagedMovies
-import org.example.kinoafisha.core.domain.model.SortOrder
 
 interface MovieRepository {
-    suspend fun getFeed(
-        query: String? = null,
-        genreId: Int? = null,
-        sort: SortOrder = SortOrder.Popularity,
-        page: Int = 1,
-    ): PagedMovies
+    /** Локальный срез (cache ← Room). UI подписан только сюда. */
+    fun observeFeed(key: FeedKey): Flow<FeedSnapshot>
 
-    suspend fun getGenres(): List<Genre>
+    /** Фоновый sync: Remote → Room → cache. */
+    suspend fun syncFeed(key: FeedKey, page: Int = 1, append: Boolean = false)
+
+    fun observeGenres(): Flow<List<Genre>>
+
+    suspend fun syncGenres()
 
     suspend fun getMovieDetails(id: Long): MovieDetails
 

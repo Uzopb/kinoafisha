@@ -1,5 +1,6 @@
 package org.example.kinoafisha.core.domain.usecase
 
+import kotlinx.coroutines.flow.Flow
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.repository.MovieRepository
 import org.koin.core.annotation.Factory
@@ -8,5 +9,7 @@ import org.koin.core.annotation.Factory
 class GetGenresUseCase(
     private val repository: MovieRepository,
 ) {
-    suspend operator fun invoke(): List<Genre> = repository.getGenres()
+    fun observe(): Flow<List<Genre>> = repository.observeGenres()
+
+    suspend fun sync() = repository.syncGenres()
 }

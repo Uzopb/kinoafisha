@@ -2,6 +2,7 @@ package org.example.kinoafisha.core.network.di
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -20,6 +21,11 @@ class NetworkModule {
     @Singleton
     fun httpClient(engine: HttpClientEngine): HttpClient =
         HttpClient(engine) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 8_000
+                connectTimeoutMillis = 5_000
+                socketTimeoutMillis = 8_000
+            }
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
             }

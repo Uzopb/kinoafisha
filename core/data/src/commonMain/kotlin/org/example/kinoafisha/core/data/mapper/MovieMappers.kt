@@ -1,6 +1,7 @@
 package org.example.kinoafisha.core.data.mapper
 
 import org.example.kinoafisha.core.database.entity.FavoriteEntity
+import org.example.kinoafisha.core.database.entity.GenreEntity
 import org.example.kinoafisha.core.database.entity.MovieEntity
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.model.Movie
@@ -11,18 +12,31 @@ import org.example.kinoafisha.core.network.dto.MovieDetailsDto
 import org.example.kinoafisha.core.network.dto.MovieDto
 import org.example.kinoafisha.core.network.dto.ReviewDto
 
-private const val TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
-
 fun GenreDto.toDomain(): Genre = Genre(id = id, name = name)
 
-fun MovieDto.toEntity(): MovieEntity =
-    MovieEntity(
+fun GenreDto.toEntity(): GenreEntity = GenreEntity(id = id, name = name)
+
+fun GenreEntity.toDomain(): Genre = Genre(id = id, name = name)
+
+fun MovieDto.toEntity(): MovieEntity {
+    val date = releaseDate
+    return MovieEntity(
         id = id,
         title = title,
-        posterUrl = posterPath?.let { "$TMDB_IMAGE_BASE$it" },
+        overview = overview,
+        releaseDate = date,
+        year = date?.take(4)?.toIntOrNull(),
+        genreIds = genreIds.joinToString(","),
+        rating = voteAverage,
+        voteCount = voteCount,
+        posterPath = posterPath,
     )
+}
 
-fun MovieDto.toDomain(genreById: Map<Int, Genre> = emptyMap()): Movie {
+fun MovieDto.toDomain(
+    genreById: Map<Int, Genre> = emptyMap(),
+    posterBytes: ByteArray? = null,
+): Movie {
     val date = releaseDate
     return Movie(
         id = id,
@@ -35,14 +49,38 @@ fun MovieDto.toDomain(genreById: Map<Int, Genre> = emptyMap()): Movie {
         rating = voteAverage,
         voteCount = voteCount,
         posterPath = posterPath,
+        posterBytes = posterBytes,
     )
 }
 
-fun MovieEntity.toDomain(): Movie =
-    Movie(
+fun MovieEntity.toDomain(
+    genreById: Map<Int, Genre> = emptyMap(),
+    posterBytes: ByteArray? = null,
+): Movie {
+    val ids = parseGenreIds(genreIds)
+    return Movie(
         id = id,
         title = title,
-        posterPath = posterUrl,
+        overview = overview,
+        releaseDate = releaseDate,
+        year = year,
+        genreIds = ids,
+        genres = ids.mapNotNull { genreById[it] },
+        rating = rating,
+        voteCount = voteCount,
+        posterPath = posterPath,
+        posterBytes = posterBytes,
+    )
+}
+
+fun MovieEntity.toDetails(
+    genreById: Map<Int, Genre> = emptyMap(),
+    posterBytes: ByteArray? = null,
+): MovieDetails =
+    MovieDetails(
+        movie = toDomain(genreById, posterBytes),
+        certification = certification,
+        reviews = emptyList(),
     )
 
 fun Movie.toFavoriteEntity(addedAt: Long): FavoriteEntity =
@@ -59,10 +97,11 @@ fun Movie.toFavoriteEntity(addedAt: Long): FavoriteEntity =
         addedAt = addedAt,
     )
 
-fun FavoriteEntity.toDomain(genreById: Map<Int, Genre> = emptyMap()): Movie {
-    val ids = genreIds
-        .split(',')
-        .mapNotNull { it.trim().toIntOrNull() }
+fun FavoriteEntity.toDomain(
+    genreById: Map<Int, Genre> = emptyMap(),
+    posterBytes: ByteArray? = null,
+): Movie {
+    val ids = parseGenreIds(genreIds)
     return Movie(
         id = id,
         title = title,
@@ -74,10 +113,20 @@ fun FavoriteEntity.toDomain(genreById: Map<Int, Genre> = emptyMap()): Movie {
         rating = rating,
         voteCount = voteCount,
         posterPath = posterPath,
+        posterBytes = posterBytes,
     )
 }
 
-fun MovieDetailsDto.toDomain(): MovieDetails {
+fun FavoriteEntity.toDetails(
+    genreById: Map<Int, Genre> = emptyMap(),
+    posterBytes: ByteArray? = null,
+): MovieDetails =
+    MovieDetails(
+        movie = toDomain(genreById, posterBytes),
+        reviews = emptyList(),
+    )
+
+fun MovieDetailsDto.toDomain(posterBytes: ByteArray? = null): MovieDetails {
     val resolvedGenres = genres.map { it.toDomain() }
     val movie = Movie(
         id = id,
@@ -90,11 +139,28 @@ fun MovieDetailsDto.toDomain(): MovieDetails {
         rating = voteAverage,
         voteCount = voteCount,
         posterPath = posterPath,
+        posterBytes = posterBytes,
     )
     return MovieDetails(
         movie = movie,
         certification = pickCertification(),
         reviews = reviews?.results.orEmpty().map { it.toDomain() },
+    )
+}
+
+fun MovieDetailsDto.toEntity(): MovieEntity {
+    val date = releaseDate
+    return MovieEntity(
+        id = id,
+        title = title,
+        overview = overview,
+        releaseDate = date,
+        year = date?.take(4)?.toIntOrNull(),
+        genreIds = genres.map { it.id }.joinToString(","),
+        rating = voteAverage,
+        voteCount = voteCount,
+        posterPath = posterPath,
+        certification = pickCertification(),
     )
 }
 
@@ -117,3 +183,7 @@ fun MovieDetailsDto.pickCertification(): String? {
         ?.firstOrNull { it.certification.isNotBlank() }
         ?.certification
 }
+
+private fun parseGenreIds(raw: String): List<Int> =
+    raw.split(',')
+        .mapNotNull { it.trim().toIntOrNull() }

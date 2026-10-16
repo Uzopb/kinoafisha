@@ -1,7 +1,8 @@
 package org.example.kinoafisha.core.domain.usecase
 
-import org.example.kinoafisha.core.domain.model.PagedMovies
-import org.example.kinoafisha.core.domain.model.SortOrder
+import kotlinx.coroutines.flow.Flow
+import org.example.kinoafisha.core.domain.model.FeedKey
+import org.example.kinoafisha.core.domain.model.FeedSnapshot
 import org.example.kinoafisha.core.domain.repository.MovieRepository
 import org.koin.core.annotation.Factory
 
@@ -9,10 +10,8 @@ import org.koin.core.annotation.Factory
 class GetFeedUseCase(
     private val repository: MovieRepository,
 ) {
-    suspend operator fun invoke(
-        query: String? = null,
-        genreId: Int? = null,
-        sort: SortOrder = SortOrder.Popularity,
-        page: Int = 1,
-    ): PagedMovies = repository.getFeed(query, genreId, sort, page)
+    fun observe(key: FeedKey): Flow<FeedSnapshot> = repository.observeFeed(key)
+
+    suspend fun sync(key: FeedKey, page: Int = 1, append: Boolean = false) =
+        repository.syncFeed(key, page, append)
 }

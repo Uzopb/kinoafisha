@@ -28,6 +28,7 @@ kotlin {
             implementation(project(":core:network"))
             implementation(project(":core:database"))
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.ktor.client.core)
             implementation(libs.koin.core)
             implementation(libs.koin.annotations)
         }
