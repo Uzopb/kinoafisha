@@ -15,6 +15,28 @@ data class MovieDetailsDto(
     val genres: List<GenreDto> = emptyList(),
     val reviews: ReviewsAppendDto? = null,
     @SerialName("release_dates") val releaseDates: ReleaseDatesAppendDto? = null,
+    val credits: CreditsAppendDto? = null,
+)
+
+@Serializable
+data class CreditsAppendDto(
+    val cast: List<CastMemberDto> = emptyList(),
+    val crew: List<CrewMemberDto> = emptyList(),
+)
+
+@Serializable
+data class CastMemberDto(
+    val id: Long,
+    val name: String,
+    val order: Int = Int.MAX_VALUE,
+)
+
+@Serializable
+data class CrewMemberDto(
+    val id: Long,
+    val name: String,
+    val job: String = "",
+    val department: String = "",
 )
 
 @Serializable

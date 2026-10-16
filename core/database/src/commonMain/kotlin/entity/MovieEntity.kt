@@ -20,4 +20,7 @@ data class MovieEntity(
     val voteCount: Int = 0,
     val posterPath: String? = null,
     val certification: String? = null,
+    val director: String? = null,
+    /** Через запятую: "Actor One,Actor Two" — без TypeConverter, маппинг в data. */
+    val cast: String = "",
 )

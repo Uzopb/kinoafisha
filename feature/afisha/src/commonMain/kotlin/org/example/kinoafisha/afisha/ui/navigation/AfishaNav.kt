@@ -3,7 +3,6 @@ package org.example.kinoafisha.afisha.ui.navigation
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,7 +72,6 @@ data class DetailsNav(
     val preview: Movie?,
 )
 
-private val TopBarHeight = 64.dp
 private val BottomNavHeight = 64.dp
 
 @Composable
@@ -113,60 +111,94 @@ fun AfishaNav(
             NavBarPadding + if (showBottomNav) BottomNavHeight else 0.dp
 
         Column(Modifier.fillMaxSize()) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(KinoColors.Bg.copy(alpha = 0.92f))
-                    .border(width = 0.dp, color = colors.line)
-                    .height(TopBarHeight + StatusBarPadding)
-                    .padding(top = StatusBarPadding)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .drawBehind {
+                        val stroke = 1.dp.toPx()
+                        val y = size.height - stroke / 2f
+                        drawLine(
+                            color = colors.line,
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = stroke,
+                            cap = StrokeCap.Square,
+                        )
+                    }
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = StatusBarPadding + 12.dp,
+                        bottom = 12.dp,
+                    ),
             ) {
-                MenuBackButton(
-                    showAsBack = showDetails,
-                    onClick = {
-                        if (showDetails) {
-                            details = null
-                            screen = prevScreen
-                        } else {
-                            menuOpen = true
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Box(
+                        modifier = Modifier.height(40.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        MenuBackButton(
+                            showAsBack = showDetails,
+                            onClick = {
+                                if (showDetails) {
+                                    details = null
+                                    screen = prevScreen
+                                } else {
+                                    menuOpen = true
+                                }
+                            },
+                        )
+                    }
+
+                    if (!useBottomNav) {
+                        Row(
+                            modifier = Modifier.height(40.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            TopNavLink(
+                                label = stringResource(Res.string.nav_new),
+                                selected = !showDetails && screen == AfishaScreen.Feed,
+                                onClick = { selectScreen(AfishaScreen.Feed) },
+                            )
+                            TopNavLink(
+                                label = stringResource(Res.string.nav_favorites),
+                                selected = !showDetails && screen == AfishaScreen.Favorites,
+                                onClick = { selectScreen(AfishaScreen.Favorites) },
+                            )
                         }
-                    },
-                )
+                    }
 
-                if (!useBottomNav) {
-                    TopNavLink(
-                        label = stringResource(Res.string.nav_new),
-                        selected = !showDetails && screen == AfishaScreen.Feed,
-                        onClick = { selectScreen(AfishaScreen.Feed) },
-                    )
-                    TopNavLink(
-                        label = stringResource(Res.string.nav_favorites),
-                        selected = !showDetails && screen == AfishaScreen.Favorites,
-                        onClick = { selectScreen(AfishaScreen.Favorites) },
-                    )
-                }
-
-                if (showSearch) {
-                    SearchBar(
-                        query = feedState.query,
-                        onQueryChange = {
-                            feedViewModel.onQueryChange(it)
-                            if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
-                            details = null
-                        },
-                        onClear = {
-                            feedViewModel.clearQuery()
-                            if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .widthIn(max = 320.dp),
-                    )
-                } else {
-                    Spacer(Modifier.weight(1f))
+                    if (showSearch) {
+                        SearchBar(
+                            query = feedState.query,
+                            onQueryChange = {
+                                feedViewModel.onQueryChange(it)
+                                if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
+                                details = null
+                            },
+                            onClear = {
+                                feedViewModel.clearQuery()
+                                if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
+                            },
+                            mode = feedState.searchMode,
+                            onModeChange = {
+                                feedViewModel.setSearchMode(it)
+                                if (screen != AfishaScreen.Feed) screen = AfishaScreen.Feed
+                                details = null
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .widthIn(max = 420.dp),
+                        )
+                    } else {
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
             }
 
@@ -275,8 +307,6 @@ private fun MenuBackButton(
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(10.dp))
-            .border(1.dp, colors.line, RoundedCornerShape(10.dp))
-            .background(colors.bgSoft)
             .semantics { contentDescription = description }
             .clickable(onClick = onClick)
             .drawBehind {

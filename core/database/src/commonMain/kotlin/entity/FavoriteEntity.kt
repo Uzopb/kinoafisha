@@ -19,5 +19,8 @@ data class FavoriteEntity(
     val rating: Double = 0.0,
     val voteCount: Int = 0,
     val posterPath: String? = null,
+    val director: String? = null,
+    /** Через запятую: "Actor One,Actor Two" — без TypeConverter, маппинг в data. */
+    val cast: String = "",
     val addedAt: Long = 0L,
 )

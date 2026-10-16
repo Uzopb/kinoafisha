@@ -7,11 +7,20 @@
     <string name="cd_clear">Очистить</string>
     <string name="cd_list">Список</string>
     <string name="cd_grid">Сетка</string>
+    <string name="cd_sort">Сортировка</string>
+    <string name="cd_search_modes">Режим поиска</string>
     <string name="cd_favorite_add">В избранное</string>
     <string name="cd_favorite_remove">Убрать из избранного</string>
 
     <string name="genres_title">Жанры</string>
     <string name="search_placeholder">Поиск по названию…</string>
+    <string name="search_placeholder_director">Поиск по режиссёру…</string>
+    <string name="search_placeholder_actor">Поиск по актёру…</string>
+    <string name="search_mode_title">Название</string>
+    <string name="search_mode_director">Режиссёр</string>
+    <string name="search_mode_actor">Актёр</string>
+    <string name="movie_director">Режиссёр</string>
+    <string name="movie_cast">В ролях</string>
     <string name="action_back">Назад</string>
     <string name="action_retry">Повторить</string>
     <string name="action_load_more">Дальше</string>

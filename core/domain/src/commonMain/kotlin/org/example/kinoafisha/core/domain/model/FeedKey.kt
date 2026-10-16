@@ -6,6 +6,7 @@ package org.example.kinoafisha.core.domain.model
  */
 data class FeedKey(
     val query: String = "",
+    val searchMode: SearchMode = SearchMode.Title,
     val genreId: Int? = null,
     val sort: SortOrder = SortOrder.Popularity,
 ) {
@@ -14,6 +15,6 @@ data class FeedKey(
     /** Стабильный ключ для Room / memory map. */
     fun storageKey(): String {
         val n = normalized()
-        return "q=${n.query}|g=${n.genreId ?: ""}|s=${n.sort.name}"
+        return "q=${n.query}|g=${n.genreId ?: ""}|s=${n.sort.name}|m=${n.searchMode.name}"
     }
 }

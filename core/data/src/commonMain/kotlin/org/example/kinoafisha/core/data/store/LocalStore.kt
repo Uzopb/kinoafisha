@@ -53,8 +53,21 @@ class LocalStore {
     fun publishMovies(movies: List<Movie>) {
         if (movies.isEmpty()) return
         catalog.update { current ->
-            current + movies.associateBy { it.id }
+            current + movies.associate { movie ->
+                val prev = current[movie.id]
+                movie.id to mergeMovie(prev, movie)
+            }
         }
+    }
+
+    /** Лента без credits не затирает уже загруженные режиссёра/актёров. */
+    private fun mergeMovie(prev: Movie?, next: Movie): Movie {
+        if (prev == null) return next
+        return next.copy(
+            director = next.director ?: prev.director,
+            cast = next.cast.ifEmpty { prev.cast },
+            posterBytes = next.posterBytes ?: prev.posterBytes,
+        )
     }
 
     fun publishGenres(list: List<Genre>) {

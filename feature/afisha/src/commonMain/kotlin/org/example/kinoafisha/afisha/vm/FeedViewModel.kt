@@ -22,6 +22,7 @@ import org.example.kinoafisha.core.domain.model.FeedLayout
 import org.example.kinoafisha.core.domain.model.FeedSnapshot
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.model.Movie
+import org.example.kinoafisha.core.domain.model.SearchMode
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.example.kinoafisha.core.domain.usecase.GetFeedUseCase
 import org.example.kinoafisha.core.domain.usecase.GetGenresUseCase
@@ -33,6 +34,7 @@ import org.koin.core.annotation.KoinViewModel
 
 data class FeedState(
     val query: String = "",
+    val searchMode: SearchMode = SearchMode.Title,
     val genreId: Int? = null,
     val genres: List<Genre> = emptyList(),
     val sort: SortOrder = SortOrder.Popularity,
@@ -61,14 +63,15 @@ class FeedViewModel(
 ) : ViewModel() {
 
     private val query = MutableStateFlow("")
+    private val searchMode = MutableStateFlow(SearchMode.Title)
     private val genreId = MutableStateFlow<Int?>(null)
     private val sort = MutableStateFlow(SortOrder.Popularity)
     private val loadingMore = MutableStateFlow(false)
     private val loadMoreError = MutableStateFlow(false)
     private val syncError = MutableStateFlow(false)
 
-    private val feedKeyFlow = combine(query, genreId, sort) { q, g, s ->
-        FeedKey(query = q, genreId = g, sort = s)
+    private val feedKeyFlow = combine(query, genreId, sort, searchMode) { q, g, s, mode ->
+        FeedKey(query = q, genreId = g, sort = s, searchMode = mode)
     }.distinctUntilChanged()
 
     private val feedKey: StateFlow<FeedKey> =
@@ -96,6 +99,7 @@ class FeedViewModel(
     ) { key, snap, extras, err ->
         FeedState(
             query = key.query,
+            searchMode = key.searchMode,
             genreId = key.genreId,
             genres = extras.genres,
             sort = key.sort,
@@ -140,6 +144,11 @@ class FeedViewModel(
         sync(feedKey.value, page = 1, append = false)
     }
 
+    fun setSearchMode(mode: SearchMode) {
+        if (searchMode.value == mode) return
+        searchMode.value = mode
+    }
+
     fun setSort(value: SortOrder) {
         if (sort.value == value) return
         sort.value = value
@@ -156,6 +165,7 @@ class FeedViewModel(
         searchJob?.cancel()
         genreId.value = null
         query.value = ""
+        searchMode.value = SearchMode.Title
         sync(feedKey.value, page = 1, append = false)
     }
 

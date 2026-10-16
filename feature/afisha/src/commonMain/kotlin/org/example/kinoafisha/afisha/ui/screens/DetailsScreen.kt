@@ -44,6 +44,8 @@ import kinoafisha.feature.afisha.generated.resources.error_load
 import kinoafisha.feature.afisha.generated.resources.error_reviews
 import kinoafisha.feature.afisha.generated.resources.ic_film_strip
 import kinoafisha.feature.afisha.generated.resources.ic_star
+import kinoafisha.feature.afisha.generated.resources.movie_cast
+import kinoafisha.feature.afisha.generated.resources.movie_director
 import kinoafisha.feature.afisha.generated.resources.movie_meta_film_year
 import kinoafisha.feature.afisha.generated.resources.overview_missing
 import kinoafisha.feature.afisha.generated.resources.reviews_count
@@ -278,6 +280,11 @@ private fun InfoBlock(
             votesSuffix = stringResource(Res.string.votes_suffix),
             modifier = Modifier.padding(top = 14.dp),
         )
+        CreditsBlock(
+            director = movie.director,
+            cast = movie.cast,
+            modifier = Modifier.padding(top = 16.dp),
+        )
         Text(
             text = movie.overview.ifBlank { stringResource(Res.string.overview_missing) },
             color = colors.textDim,
@@ -287,6 +294,60 @@ private fun InfoBlock(
         )
     }
 }
+
+@Composable
+private fun CreditsBlock(
+    director: String?,
+    cast: List<String>,
+    modifier: Modifier = Modifier,
+) {
+    val emDash = stringResource(Res.string.em_dash)
+    val castLine = if (cast.isEmpty()) {
+        emDash
+    } else {
+        cast.take(CAST_PREVIEW_LIMIT).joinToString(", ").let { names ->
+            if (cast.size > CAST_PREVIEW_LIMIT) "$names…" else names
+        }
+    }
+    Column(
+        modifier = modifier.widthIn(max = 560.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CreditLine(
+            label = stringResource(Res.string.movie_director),
+            value = director?.takeIf { it.isNotBlank() } ?: emDash,
+        )
+        CreditLine(
+            label = stringResource(Res.string.movie_cast),
+            value = castLine,
+        )
+    }
+}
+
+@Composable
+private fun CreditLine(
+    label: String,
+    value: String,
+) {
+    val colors = KinoTheme.colors
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = label,
+            color = colors.textDim,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            modifier = Modifier.widthIn(min = 88.dp),
+        )
+        Text(
+            text = value,
+            color = KinoColors.Text,
+            fontSize = 14.sp,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+    }
+}
+
+private const val CAST_PREVIEW_LIMIT = 8
 
 @Composable
 private fun ReviewCard(review: Review) {

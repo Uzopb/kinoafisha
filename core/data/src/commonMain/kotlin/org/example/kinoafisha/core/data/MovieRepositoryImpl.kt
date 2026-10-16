@@ -25,6 +25,7 @@ import org.example.kinoafisha.core.data.mapper.toFavoriteEntity
 import org.example.kinoafisha.core.data.mapper.toFeedLayout
 import org.example.kinoafisha.core.data.mapper.toStorage
 import org.example.kinoafisha.core.data.mapper.toTmdbSortBy
+import org.example.kinoafisha.core.data.mapper.withPreservedDetailsFrom
 import org.example.kinoafisha.core.data.store.LocalStore
 import org.example.kinoafisha.core.database.dao.AppSettingsDao
 import org.example.kinoafisha.core.database.dao.FavoriteDao
@@ -41,11 +42,13 @@ import org.example.kinoafisha.core.domain.model.FeedSnapshot
 import org.example.kinoafisha.core.domain.model.Genre
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.MovieDetails
+import org.example.kinoafisha.core.domain.model.SearchMode
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.example.kinoafisha.core.domain.repository.MovieRepository
 import org.example.kinoafisha.core.network.MovieApi
 import org.example.kinoafisha.core.network.dto.MovieDto
 import org.example.kinoafisha.core.network.dto.PagedResponse
+import org.example.kinoafisha.core.network.dto.PersonDto
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Singleton
 
@@ -85,6 +88,7 @@ class MovieRepositoryImpl(
             ensureGenres(forceNetwork = false)
             val response = fetchFeedPage(
                 query = feedKey.query.takeIf { it.isNotEmpty() },
+                searchMode = feedKey.searchMode,
                 genreId = feedKey.genreId,
                 sort = feedKey.sort,
                 page = page,
@@ -165,9 +169,13 @@ class MovieRepositoryImpl(
         response: PagedResponse<MovieDto>,
         append: Boolean,
     ) {
-        movieDao.upsertAll(response.results.map(MovieDto::toEntity))
+        upsertFeedMovies(response.results)
         val posters = ensurePosters(response.results.map { it.id to it.posterPath })
-        var items = response.results.map { it.toDomain(genreById, posters[it.id]) }
+        val entities = movieDao.getByIds(response.results.map { it.id }).associateBy { it.id }
+        var items = response.results.map { dto ->
+            entities[dto.id]?.toDomain(genreById, posters[dto.id])
+                ?: dto.toDomain(genreById, posters[dto.id])
+        }
         val q = key.query
         items = if (q.isNotEmpty() || key.genreId == null) {
             sortMovies(items, key.sort)
@@ -282,8 +290,13 @@ class MovieRepositoryImpl(
             SortOrder.valueOf(parts["s"] ?: return null)
         }.getOrNull() ?: return null
         val g = parts["g"].orEmpty()
+        val mode = parts["m"]
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { raw -> runCatching { SearchMode.valueOf(raw) }.getOrNull() }
+            ?: SearchMode.Title
         return FeedKey(
             query = parts["q"].orEmpty(),
+            searchMode = mode,
             genreId = g.takeIf { it.isNotEmpty() }?.toIntOrNull(),
             sort = sort,
         )
@@ -291,13 +304,18 @@ class MovieRepositoryImpl(
 
     private suspend fun fetchFeedPage(
         query: String?,
+        searchMode: SearchMode,
         genreId: Int?,
         sort: SortOrder,
         page: Int,
     ): PagedResponse<MovieDto> {
         val q = query?.trim().orEmpty()
         if (q.isNotEmpty()) {
-            return api.search(query = q, page = page)
+            return when (searchMode) {
+                SearchMode.Title -> api.search(query = q, page = page)
+                SearchMode.Director, SearchMode.Actor ->
+                    searchByPerson(query = q, mode = searchMode, sort = sort, page = page)
+            }
         }
         if (genreId != null) {
             return api.discover(
@@ -318,6 +336,45 @@ class MovieRepositoryImpl(
             )
         }
         return api.nowPlaying(page = page)
+    }
+
+    private suspend fun searchByPerson(
+        query: String,
+        mode: SearchMode,
+        sort: SortOrder,
+        page: Int,
+    ): PagedResponse<MovieDto> {
+        val people = api.searchPerson(query = query, page = 1).results
+        val person = pickPerson(people, mode)
+            ?: return PagedResponse(page = page, results = emptyList(), totalPages = 0)
+        val personId = person.id.toString()
+        return api.discover(
+            sortBy = sort.toTmdbSortBy(),
+            voteCountGte = voteCountFloor(sort),
+            withCast = personId.takeIf { mode == SearchMode.Actor },
+            withCrew = personId.takeIf { mode == SearchMode.Director },
+            page = page,
+        )
+    }
+
+    private fun pickPerson(people: List<PersonDto>, mode: SearchMode): PersonDto? {
+        val preferredDept = when (mode) {
+            SearchMode.Director -> "Directing"
+            SearchMode.Actor -> "Acting"
+            SearchMode.Title -> return null
+        }
+        return people.firstOrNull { it.knownForDepartment.equals(preferredDept, ignoreCase = true) }
+            ?: people.firstOrNull()
+    }
+
+    private suspend fun upsertFeedMovies(dtos: List<MovieDto>) {
+        if (dtos.isEmpty()) return
+        val existing = movieDao.getByIds(dtos.map { it.id }).associateBy { it.id }
+        movieDao.upsertAll(
+            dtos.map { dto ->
+                dto.toEntity().withPreservedDetailsFrom(existing[dto.id])
+            },
+        )
     }
 
     private suspend fun cachedDetails(id: Long): MovieDetails? {

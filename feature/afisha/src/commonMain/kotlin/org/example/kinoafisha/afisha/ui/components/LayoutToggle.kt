@@ -34,15 +34,23 @@ fun LayoutToggle(
     layout: FeedLayout,
     onLayoutChange: (FeedLayout) -> Unit,
     modifier: Modifier = Modifier,
+    bordered: Boolean = true,
 ) {
     val colors = KinoTheme.colors
     val shape = RoundedCornerShape(KinoRadii.Pill)
     Row(
         modifier = modifier
-            .height(40.dp)
-            .border(1.dp, colors.line, shape)
-            .background(colors.bgSoft, shape)
-            .padding(3.dp),
+            .then(
+                if (bordered) {
+                    Modifier
+                        .height(40.dp)
+                        .border(1.dp, colors.line, shape)
+                        .background(colors.bgSoft, shape)
+                        .padding(3.dp)
+                } else {
+                    Modifier
+                },
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         LayoutBtn(

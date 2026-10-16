@@ -6,10 +6,17 @@ import kotlin.time.Instant
 import kinoafisha.feature.afisha.generated.resources.Res
 import kinoafisha.feature.afisha.generated.resources.ic_arrow_down
 import kinoafisha.feature.afisha.generated.resources.ic_arrow_up
+import kinoafisha.feature.afisha.generated.resources.search_mode_actor
+import kinoafisha.feature.afisha.generated.resources.search_mode_director
+import kinoafisha.feature.afisha.generated.resources.search_mode_title
+import kinoafisha.feature.afisha.generated.resources.search_placeholder
+import kinoafisha.feature.afisha.generated.resources.search_placeholder_actor
+import kinoafisha.feature.afisha.generated.resources.search_placeholder_director
 import kinoafisha.feature.afisha.generated.resources.sort_popularity
 import kinoafisha.feature.afisha.generated.resources.sort_rating
 import kinoafisha.feature.afisha.generated.resources.sort_year
 import org.example.kinoafisha.core.domain.model.Movie
+import org.example.kinoafisha.core.domain.model.SearchMode
 import org.example.kinoafisha.core.domain.model.SortOrder
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -72,6 +79,20 @@ fun SortOrder.labelRes(): StringResource =
         SortOrder.Popularity -> Res.string.sort_popularity
         SortOrder.RatingDesc, SortOrder.RatingAsc -> Res.string.sort_rating
         SortOrder.YearDesc, SortOrder.YearAsc -> Res.string.sort_year
+    }
+
+fun SearchMode.labelRes(): StringResource =
+    when (this) {
+        SearchMode.Title -> Res.string.search_mode_title
+        SearchMode.Director -> Res.string.search_mode_director
+        SearchMode.Actor -> Res.string.search_mode_actor
+    }
+
+fun SearchMode.placeholderRes(): StringResource =
+    when (this) {
+        SearchMode.Title -> Res.string.search_placeholder
+        SearchMode.Director -> Res.string.search_placeholder_director
+        SearchMode.Actor -> Res.string.search_placeholder_actor
     }
 
 fun SortOrder.directionIcon(): DrawableResource? =

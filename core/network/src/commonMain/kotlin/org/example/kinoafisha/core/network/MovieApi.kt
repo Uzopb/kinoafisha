@@ -9,6 +9,7 @@ import org.example.kinoafisha.core.network.dto.GenreListResponse
 import org.example.kinoafisha.core.network.dto.MovieDetailsDto
 import org.example.kinoafisha.core.network.dto.MovieDto
 import org.example.kinoafisha.core.network.dto.PagedResponse
+import org.example.kinoafisha.core.network.dto.PersonDto
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Singleton
 
@@ -33,12 +34,22 @@ class MovieApi(
             parameter("page", page)
         }.body()
 
+    suspend fun searchPerson(query: String, page: Int = 1): PagedResponse<PersonDto> =
+        client.get("$BASE/search/person") {
+            tmdbDefaults()
+            parameter("query", query)
+            parameter("include_adult", false)
+            parameter("page", page)
+        }.body()
+
     suspend fun discover(
         genreId: Int? = null,
         sortBy: String,
         dateFrom: String? = null,
         dateTo: String? = null,
         voteCountGte: Int? = null,
+        withCast: String? = null,
+        withCrew: String? = null,
         page: Int = 1,
     ): PagedResponse<MovieDto> =
         client.get("$BASE/discover/movie") {
@@ -50,6 +61,8 @@ class MovieApi(
             dateFrom?.let { parameter("primary_release_date.gte", it) }
             dateTo?.let { parameter("primary_release_date.lte", it) }
             voteCountGte?.let { parameter("vote_count.gte", it) }
+            withCast?.let { parameter("with_cast", it) }
+            withCrew?.let { parameter("with_crew", it) }
             if (dateFrom != null || dateTo != null) {
                 parameter("region", "RU")
             }
@@ -63,7 +76,7 @@ class MovieApi(
     suspend fun movieDetails(id: Long): MovieDetailsDto =
         client.get("$BASE/movie/$id") {
             tmdbDefaults()
-            parameter("append_to_response", "reviews,release_dates")
+            parameter("append_to_response", "reviews,release_dates,credits")
         }.body()
 
     private fun HttpRequestBuilder.tmdbDefaults() {

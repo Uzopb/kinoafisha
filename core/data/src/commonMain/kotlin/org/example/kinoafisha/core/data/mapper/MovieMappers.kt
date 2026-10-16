@@ -70,6 +70,8 @@ fun MovieEntity.toDomain(
         voteCount = voteCount,
         posterPath = posterPath,
         posterBytes = posterBytes,
+        director = director,
+        cast = parseNames(cast),
     )
 }
 
@@ -94,6 +96,8 @@ fun Movie.toFavoriteEntity(addedAt: Long): FavoriteEntity =
         rating = rating,
         voteCount = voteCount,
         posterPath = posterPath,
+        director = director,
+        cast = cast.joinToString(","),
         addedAt = addedAt,
     )
 
@@ -114,6 +118,8 @@ fun FavoriteEntity.toDomain(
         voteCount = voteCount,
         posterPath = posterPath,
         posterBytes = posterBytes,
+        director = director,
+        cast = parseNames(cast),
     )
 }
 
@@ -128,6 +134,7 @@ fun FavoriteEntity.toDetails(
 
 fun MovieDetailsDto.toDomain(posterBytes: ByteArray? = null): MovieDetails {
     val resolvedGenres = genres.map { it.toDomain() }
+    val (director, cast) = pickCredits()
     val movie = Movie(
         id = id,
         title = title,
@@ -140,6 +147,8 @@ fun MovieDetailsDto.toDomain(posterBytes: ByteArray? = null): MovieDetails {
         voteCount = voteCount,
         posterPath = posterPath,
         posterBytes = posterBytes,
+        director = director,
+        cast = cast,
     )
     return MovieDetails(
         movie = movie,
@@ -150,6 +159,7 @@ fun MovieDetailsDto.toDomain(posterBytes: ByteArray? = null): MovieDetails {
 
 fun MovieDetailsDto.toEntity(): MovieEntity {
     val date = releaseDate
+    val (director, cast) = pickCredits()
     return MovieEntity(
         id = id,
         title = title,
@@ -161,6 +171,8 @@ fun MovieDetailsDto.toEntity(): MovieEntity {
         voteCount = voteCount,
         posterPath = posterPath,
         certification = pickCertification(),
+        director = director,
+        cast = cast.joinToString(","),
     )
 }
 
@@ -184,6 +196,38 @@ fun MovieDetailsDto.pickCertification(): String? {
         ?.certification
 }
 
+fun MovieDetailsDto.pickCredits(): Pair<String?, List<String>> {
+    val credits = credits ?: return null to emptyList()
+    val director = credits.crew
+        .firstOrNull { it.job.equals("Director", ignoreCase = true) }
+        ?.name
+        ?.takeIf { it.isNotBlank() }
+    val cast = credits.cast
+        .sortedBy { it.order }
+        .map { it.name.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
+        .take(CAST_STORAGE_LIMIT)
+    return director to cast
+}
+
+/** Сохраняет credits/certification при upsert карточки из ленты без details. */
+fun MovieEntity.withPreservedDetailsFrom(previous: MovieEntity?): MovieEntity {
+    if (previous == null) return this
+    return copy(
+        certification = certification ?: previous.certification,
+        director = director ?: previous.director,
+        cast = cast.ifBlank { previous.cast },
+    )
+}
+
 private fun parseGenreIds(raw: String): List<Int> =
     raw.split(',')
         .mapNotNull { it.trim().toIntOrNull() }
+
+private fun parseNames(raw: String): List<String> =
+    raw.split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+
+private const val CAST_STORAGE_LIMIT = 12

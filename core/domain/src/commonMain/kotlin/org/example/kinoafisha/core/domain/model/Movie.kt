@@ -13,6 +13,8 @@ data class Movie(
     val posterPath: String? = null,
     /** Локальный снимок постера из БД; источник для офлайн UI. */
     val posterBytes: ByteArray? = null,
+    val director: String? = null,
+    val cast: List<String> = emptyList(),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -28,7 +30,9 @@ data class Movie(
             rating == other.rating &&
             voteCount == other.voteCount &&
             posterPath == other.posterPath &&
-            posterBytesEqual(posterBytes, other.posterBytes)
+            posterBytesEqual(posterBytes, other.posterBytes) &&
+            director == other.director &&
+            cast == other.cast
     }
 
     override fun hashCode(): Int {
@@ -43,6 +47,8 @@ data class Movie(
         result = 31 * result + voteCount
         result = 31 * result + (posterPath?.hashCode() ?: 0)
         result = 31 * result + (posterBytes?.contentHashCode() ?: 0)
+        result = 31 * result + (director?.hashCode() ?: 0)
+        result = 31 * result + cast.hashCode()
         return result
     }
 }
