@@ -57,10 +57,11 @@ import kinoafisha.feature.afisha.generated.resources.votes_suffix
 import org.example.kinoafisha.afisha.theme.KinoColors
 import org.example.kinoafisha.afisha.theme.KinoRadii
 import org.example.kinoafisha.afisha.theme.KinoTheme
+import org.example.kinoafisha.afisha.detailsWithMvi.DetailsIntent
+import org.example.kinoafisha.afisha.detailsWithMvi.DetailsViewModelMVI
 import org.example.kinoafisha.afisha.ui.atoms.FavButton
 import org.example.kinoafisha.afisha.ui.atoms.RatingPill
 import org.example.kinoafisha.afisha.util.posterModel
-import org.example.kinoafisha.afisha.vm.DetailsViewModel
 import org.example.kinoafisha.core.domain.model.Movie
 import org.example.kinoafisha.core.domain.model.Review
 import org.jetbrains.compose.resources.painterResource
@@ -74,13 +75,14 @@ fun DetailsScreen(
     movieId: Long,
     preview: Movie?,
     modifier: Modifier = Modifier,
-    viewModel: DetailsViewModel = koinViewModel(),
+    viewModel: DetailsViewModelMVI = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val colors = KinoTheme.colors
+    val onIntent = viewModel::dispatch
 
     LaunchedEffect(movieId) {
-        viewModel.open(movieId, preview)
+        onIntent(DetailsIntent.Open(movieId, preview))
     }
 
     Column(
@@ -99,7 +101,7 @@ fun DetailsScreen(
             state.hasError && state.movie == null -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(Res.string.error_load), color = colors.textDim)
-                    TextButton(onClick = viewModel::retry) {
+                    TextButton(onClick = { onIntent(DetailsIntent.Retry) }) {
                         Text(stringResource(Res.string.action_retry), color = colors.accent2)
                     }
                 }
@@ -111,7 +113,7 @@ fun DetailsScreen(
                     movie = movie,
                     certification = state.certification,
                     isFavorite = state.isFavorite,
-                    onToggleFavorite = viewModel::toggleFav,
+                    onToggleFavorite = { onIntent(DetailsIntent.ToggleFavorite) },
                 )
 
                 Spacer(Modifier.height(28.dp))

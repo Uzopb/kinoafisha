@@ -30,7 +30,7 @@ data class DetailsState(
 )
 
 @KoinViewModel
-class DetailsViewModel(
+class DetailsViewModelMVVM(
     private val getMovieDetails: GetMovieDetailsUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase,
     private val observeFavorites: ObserveFavoritesUseCase,
