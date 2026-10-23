@@ -8,10 +8,17 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.HttpHeaders
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 
+/**
+ * Живой smoke-тест CDN TMDB. Нестабилен офлайн / в ограниченных сетях.
+ * Вручную: снять @Ignore и
+ * `./gradlew :feature:afisha:jvmTest --tests '*CioFetchTest'`
+ */
+@Ignore
 class CioFetchTest {
     @Test
     fun cioFetch() = runBlocking {
@@ -23,7 +30,7 @@ class CioFetchTest {
             }
         }
         try {
-            val bytes = client.get("https://image.tmdb.org/t/p/w342/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg") {
+            val bytes = client.get(POSTER_URL) {
                 header(HttpHeaders.UserAgent, "Kinoafisha/1.0")
             }.readRawBytes()
             println("CIO bytes=${bytes.size}")
@@ -37,7 +44,7 @@ class CioFetchTest {
     fun javaEngineFetch() = runBlocking {
         val client = HttpClient(Java)
         try {
-            val bytes = client.get("https://image.tmdb.org/t/p/w342/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg") {
+            val bytes = client.get(POSTER_URL) {
                 header(HttpHeaders.UserAgent, "Kinoafisha/1.0")
             }.readRawBytes()
             println("Java engine bytes=${bytes.size}")
@@ -45,5 +52,10 @@ class CioFetchTest {
         } finally {
             client.close()
         }
+    }
+
+    private companion object {
+        const val POSTER_URL =
+            "https://image.tmdb.org/t/p/w342/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg"
     }
 }
