@@ -26,11 +26,14 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # пакет `tools` снят из SDK
+          packages: platform-tools
 
       - name: Write local.properties
         run: |
           {
-            echo "sdk.dir=$ANDROID_HOME"
+            echo "sdk.dir=${ANDROID_HOME}"
             echo "tmdb.api.key=${{ secrets.TMDB_API_KEY }}"
           } > local.properties
 
